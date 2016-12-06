@@ -1,59 +1,35 @@
 #property copyright "Iman Dezfuly"
 #property link      "http://www.Iman.ir"
-#define version      "201609131"
+#define version      "20161131"
 
 #include "./desphilboy.mqh"
 
 extern int OrderNumber = 0;
 
-static bool once = true;
-
 void init()
 {
-Print("Desphilboy position marker ",version, " on ", Symbol());
+   Print("Desphilboy position marker ",version, " on ", Symbol());
+   markPositions();
+   ExpertRemove();
 }
-
-
-
-
-//+------------------------------------------------------------------+
-//| expert start function                                            |
-//+------------------------------------------------------------------+
-void start() 
-{
-  if(once) 
-   {
-      markPositions();
-      once = false;
-      if(!once) {
-         ExpertRemove();
-      }
-   }
-   
-  return;
-}
-  
 
 int markPositions()
 {
    
-  for(int i=0; i<OrdersTotal(); i++) 
-     {
+  for(int i=0; i<OrdersTotal(); i++) {
       
-        if ( OrderSymbol() == Symbol() && OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) 
-        {
+      if ( OrderSymbol() == Symbol() && OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) {
             OrderPrint(); 
             Print( "Order ", OrderTicket(), " has group ", getGroupName(OrderMagicNumber()));
-        }
       }
+   }
       
-     if( OrderNumber !=0 ){
-     if(OrderSelect(OrderNumber, SELECT_BY_TICKET, MODE_TRADES)){
+   if( OrderNumber !=0 ){
+         if(OrderSelect(OrderNumber, SELECT_BY_TICKET, MODE_TRADES)){
             OrderPrint(); 
             Print( "Order ", OrderTicket(), " has group ", getGroupName(OrderMagicNumber()));
-     }
-     }
-      
+         }
+   }
    return(0); 
 }
 
