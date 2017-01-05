@@ -64,7 +64,7 @@ int init()
       
         if (pRef - OrderOpenPrice() > 0 ) 
         {// order is in profit.
-           if ((OrderStopLoss() != 0.0 && pRef - OrderStopLoss() > pStep) || (OrderStopLoss() == 0.0 && pRef - OrderOpenPrice() > pStep)) 
+           if ((OrderStopLoss() != 0.0 && pRef - OrderStopLoss() > pStep && pRef - OrderOpenPrice() > pStep)  || (OrderStopLoss() == 0.0 && pRef - OrderOpenPrice() > pStep)) 
            {
             ModifyStopLoss(pRef);
             return;
@@ -81,7 +81,7 @@ int init()
       
         if (OrderOpenPrice()- pRef > 0) 
         {// order is in profit.
-           if ((OrderStopLoss() != 0.0 && OrderStopLoss() - pRef > pStep) || (OrderStopLoss() == 0.0 && OrderOpenPrice() - pRef > pStep))
+           if ((OrderStopLoss() != 0.0 && OrderStopLoss() - pRef > pStep && OrderOpenPrice() - pRef > pStep) || (OrderStopLoss() == 0.0 && OrderOpenPrice() - pRef > pStep))
            {
             ModifyStopLoss(pRef);
             return;
