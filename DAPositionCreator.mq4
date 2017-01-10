@@ -26,6 +26,11 @@ extern int TradesExpireAfterHours = 0;
 extern color ColourBuys = clrNONE;
 extern color ColourSells = clrNONE;
 extern int Slippage = 20;
+extern bool PaintPositions = true;
+extern color LongTermColour = clrAqua;
+extern color MediumTermColour = clrGreen;
+extern color ShortTermColour = clrOrangeRed;
+extern color UserGroupColour = clrBlue;
 
 static bool once = false;
 
@@ -38,6 +43,9 @@ void init()
       EventSetTimer(delaySecondsBeforeConfirm); 
       CreatePositions = false;
    }
+   
+   if (PaintPositions) paintPositions();
+   
 return;
 }
 
@@ -158,3 +166,89 @@ if( result == -1 ) {
         }
 return result;
 }  
+
+
+int paintPositions()
+{
+
+color  colour; 
+string name;
+string symbol;
+long chartId;
+int subwindow = -1;
+datetime xdatetime;
+double yprice;
+int x;
+
+ x = 500;
+   chartId = ChartID();
+   symbol = Symbol();
+   x = (int) (ChartWidthInPixels() * 0.9);
+   
+   if(ChartXYToTimePrice(
+   ChartID(),     // Chart ID
+   x,            // The X coordinate on the chart
+   0,            // The Y coordinate on the chart
+   subwindow,   // The number of the subwindow
+   xdatetime,         // Time on the chart
+   yprice         // Price on the chart
+   ))
+   {
+      Print( "colouring positions");
+   }
+   else return 0;
+   
+   
+   
+   
+   
+   
+        
+  for(int i=0; i<OrdersTotal(); i++) {
+          
+      if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) {
+         if(OrderSymbol() == symbol) {
+         
+             if(getGroup(OrderMagicNumber()) == UserGroup ) { colour = UserGroupColour; }
+               else if(getGroup(OrderMagicNumber()) == ShortTerm ) { colour = ShortTermColour; }
+                     else if(getGroup(OrderMagicNumber()) == MediumTerm ) { colour = MediumTermColour; }
+                           else if(getGroup(OrderMagicNumber()) == LongTerm ) { colour = LongTermColour; }
+                                 else {
+                                    colour = clrNONE;
+                                 }
+            name = Symbol() + "-" + getGroupName(OrderMagicNumber()) + "-" + IntegerToString(i);
+            ObjectDelete(name);
+            bool bResult = ObjectCreate(
+                              chartId
+                              , name 
+                              , OBJ_ARROW_BUY  
+                              , 0  
+                              , xdatetime  
+                              , OrderOpenPrice());
+            if(!bResult){
+               Print (" could not paint arrow for position", OrderTicket());
+            } else {
+                  ObjectSetInteger(chartId, name, OBJPROP_COLOR, colour);
+              }                                
+           }
+      }
+   }
+      
+   return(0); 
+}
+
+int ChartWidthInPixels(const long chart_ID=0)
+  {
+//--- prepare the variable to get the property value
+   long result=-1;
+//--- reset the error value
+   ResetLastError();
+//--- receive the property value
+   if(!ChartGetInteger(chart_ID,CHART_WIDTH_IN_PIXELS,0,result))
+     {
+      //--- display the error message in Experts journal
+      Print(__FUNCTION__+", Error Code = ",GetLastError());
+     }
+//--- return the value of the chart property
+   return((int)result);
+  }
