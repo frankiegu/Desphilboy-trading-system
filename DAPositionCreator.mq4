@@ -1,7 +1,7 @@
 // Desphilboy Advanced Position Creator
 #property copyright "Iman Dezfuly"
 #property link      "http://www.Iman.ir"
-#define version      "201609121"
+#define version      "201701121"
 
 #include "./desphilboy.mqh"
 
@@ -39,12 +39,15 @@ static bool once = false;
 void init()
 {
    Print("Desphilboy Advanced position creator ",version, " on ", Symbol());
+   
+   if (PaintPositions) paintPositions();
+   
    if ( CreatePositions ) { 
       EventSetTimer(delaySecondsBeforeConfirm); 
       CreatePositions = false;
    }
    
-   if (PaintPositions) paintPositions();
+   
    
 return;
 }
@@ -179,7 +182,7 @@ int subwindow = -1;
 datetime xdatetime;
 double yprice;
 int x;
-
+  
  x = 500;
    chartId = ChartID();
    symbol = Symbol();
@@ -198,12 +201,8 @@ int x;
    }
    else return 0;
    
-   
-   
-   
-   
-   
-        
+  ObjectsDeleteAll(chartId,0, OBJ_ARROW);
+           
   for(int i=0; i<OrdersTotal(); i++) {
           
       if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) {
@@ -217,7 +216,6 @@ int x;
                                     colour = clrNONE;
                                  }
             name = Symbol() + "-" + getGroupName(OrderMagicNumber()) + "-" + IntegerToString(i);
-            ObjectDelete(name);
             bool bResult = ObjectCreate(
                               chartId
                               , name 
