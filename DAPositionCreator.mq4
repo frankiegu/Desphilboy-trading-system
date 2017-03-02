@@ -1,7 +1,7 @@
 // Desphilboy Advanced Position Creator
 #property copyright "Iman Dezfuly"
 #property link      "http://www.Iman.ir"
-#define version      "201701121"
+#define version      "201703011"
 
 #include "./desphilboy.mqh"
 
@@ -31,6 +31,7 @@ extern color LongTermColour = clrAqua;
 extern color MediumTermColour = clrGreen;
 extern color ShortTermColour = clrOrangeRed;
 extern color UserGroupColour = clrBlue;
+extern int  MinSpaceBetweenPositions = 150;
 
 static bool once = false;
 
@@ -39,7 +40,7 @@ static bool once = false;
 void init()
 {
    Print("Desphilboy Advanced position creator ",version, " on ", Symbol());
-   
+    
    if (PaintPositions) paintPositions();
    
    if ( CreatePositions ) { 
@@ -71,6 +72,7 @@ void OnTimer() {
 //+------------------------------------------------------------------+
 void start() 
 {
+
   if(once) 
    {  
       doPositions();
@@ -109,6 +111,15 @@ double price = baseprice + ( DistanceBetweenBuyStops * index + PIPsToStartBuySto
 double stopLoss = StopLossBuys !=0 ? price - StopLossBuys * pip : 0;
 double takeProfit = TakeProfitBuys != 0 ? price + TakeProfitBuys * pip : 0;
 
+
+if ( MinSpaceBetweenPositions !=0){
+   bool spaceAvailable = clearSpaceForPosition(price,MinSpaceBetweenPositions,OP_BUYSTOP, BuyStopsGroup);
+   if( !spaceAvailable) {
+      Print( "Space not available for SellStop at ", price, " with group ", getGroupName(createMagicNumber(DAPositionCreator_ID, BuyStopsGroup)));
+   return -1;
+   }
+}
+
 int result = OrderSend(
                         Symbol(),                   // symbol
                         OP_BUYSTOP,                 // operation
@@ -145,6 +156,14 @@ double baseprice = StartingPrice == 0.0 ? Bid : StartingPrice;
 double price =  baseprice - ( DistanceBetweenSellStops * index + PIPsToStartSellStops) * pip;
 double stopLoss = StopLossSells !=0 ? price + StopLossSells * pip : 0;
 double takeProfit = TakeProfitSells != 0 ? price - TakeProfitSells * pip : 0;
+
+if ( MinSpaceBetweenPositions !=0){
+   bool spaceAvailable = clearSpaceForPosition(price,MinSpaceBetweenPositions,OP_SELLSTOP,SellStopsGroup);
+   if( !spaceAvailable) {
+      Print( "Space not available for SellStop at ", price, " with group ", getGroupName(createMagicNumber(DAPositionCreator_ID, SellStopsGroup)));
+   return -1;
+   }
+}
 
 int result = OrderSend(
                         Symbol(),                   // symbol
@@ -250,3 +269,32 @@ int ChartWidthInPixels(const long chart_ID=0)
 //--- return the value of the chart property
    return((int)result);
   }
+  
+  
+  int array_returning_function( int &intarray[])
+  {
+  intarray[0]=0;
+  intarray[1]=1;
+  return 2;
+  }
+ 
+ 
+ bool clearSpaceForPosition(double price, int pips, int operation, int group)
+ {
+   int positions[1000];
+   int c = getPositionsInRange(Symbol(), operation, price, pips, positions);
+   
+   for( int i =0; i< c; ++i)
+   {  
+      if(OrderSelect(positions[i], SELECT_BY_TICKET) ){
+         if(getGroup(OrderMagicNumber()) <= group){
+            return false;
+         }
+         else {
+            OrderDelete(positions[i]);
+         }
+      }
+   }
+   
+   return true; 
+ } 

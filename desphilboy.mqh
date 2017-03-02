@@ -1,3 +1,4 @@
+//version  20170301
 // heaer file for desphilboy
 //+------------------------------------------------------------------+
 //|                                                   desphilboy.mqh |
@@ -104,4 +105,34 @@ if(isLongTerm(magicNumber)) { return LongTerm; }
                else if(isShortTerm(magicNumber)){return ShortTerm;}
                         else if(isUserGroup(magicNumber)){return UserGroup;}
 return NoGroup;
+}
+
+
+
+int getPositionsInterval(string symbol, int operation, double rangeLow, double rangeHi,int &results[])
+{
+   int resultCounter = 0;
+   
+     for(int i=0; i<OrdersTotal(); i++) 
+     {
+        if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) 
+        {
+           if (OrderSymbol()==symbol && OrderType()==operation && OrderOpenPrice() > rangeLow && OrderOpenPrice() < rangeHi) 
+           {
+               results[resultCounter] = OrderTicket();
+               resultCounter++;
+           }
+        }
+     }
+     
+     return resultCounter;
+} 
+
+
+int getPositionsInRange(string symbol, int operation, double center, int PIPsMargin, int &results[])
+{
+   double pip = MarketInfo(symbol, MODE_POINT);
+   double l = center - PIPsMargin * pip;
+   double h = center + PIPsMargin * pip;
+ return getPositionsInterval(symbol,operation, l, h, results);
 }
