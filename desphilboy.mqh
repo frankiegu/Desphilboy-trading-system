@@ -129,10 +129,36 @@ int getPositionsInterval(string symbol, int operation, double rangeLow, double r
 } 
 
 
-int getPositionsInRange(string symbol, int operation, double center, int PIPsMargin, int &results[])
+int getPositionsInterval(string symbol, int operation, double rangeLow, double rangeHi,int &results[], bool spaceOpenPositions=false, int group = NoGroup)
+{
+   int resultCounter = 0;
+   
+   int openPosType = (operation == OP_SELLSTOP || operation == OP_SELLLIMIT ) ? OP_SELL : OP_BUY ; 
+   
+     for(int i=0; i<OrdersTotal(); i++) 
+     {
+        if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) 
+        {
+           if (OrderSymbol()==symbol 
+           && (OrderType()==operation || (OrderType() == openPosType && spaceOpenPositions)) 
+           && OrderOpenPrice() > rangeLow 
+           && OrderOpenPrice() < rangeHi
+           && ( group == NoGroup || getGroup(OrderMagicNumber()) <= group)) 
+           {
+               results[resultCounter] = OrderTicket();
+               resultCounter++;
+           }
+        }
+     }
+     
+     return resultCounter;
+} 
+
+
+int getPositionsInRange(string symbol, int operation, double center, int PIPsMargin, int &results[], bool spaceOpenPositions=false, int group = NoGroup)
 {
    double pip = MarketInfo(symbol, MODE_POINT);
    double l = center - PIPsMargin * pip;
    double h = center + PIPsMargin * pip;
- return getPositionsInterval(symbol,operation, l, h, results);
+ return getPositionsInterval(symbol,operation, l, h, results, spaceOpenPositions, group);
 }

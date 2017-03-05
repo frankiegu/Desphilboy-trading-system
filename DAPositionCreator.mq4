@@ -31,7 +31,11 @@ extern color LongTermColour = clrAqua;
 extern color MediumTermColour = clrGreen;
 extern color ShortTermColour = clrOrangeRed;
 extern color UserGroupColour = clrBlue;
-extern int  MinSpaceBetweenPositions = 150;
+extern bool SpaceExistingPositions = true;
+extern int UserGroupSpacing = 100;
+extern int ShortTermSpacing = 200;
+extern int MediumTermSpacing = 300;
+extern int LongTermSpacing = 400;
 
 static bool once = false;
 
@@ -112,13 +116,12 @@ double stopLoss = StopLossBuys !=0 ? price - StopLossBuys * pip : 0;
 double takeProfit = TakeProfitBuys != 0 ? price + TakeProfitBuys * pip : 0;
 
 
-if ( MinSpaceBetweenPositions !=0){
-   bool spaceAvailable = clearSpaceForPosition(price,MinSpaceBetweenPositions,OP_BUYSTOP, BuyStopsGroup);
+   bool spaceAvailable = clearSpaceForPosition(price,OP_BUYSTOP, BuyStopsGroup);
    if( !spaceAvailable) {
       Print( "Space not available for SellStop at ", price, " with group ", getGroupName(createMagicNumber(DAPositionCreator_ID, BuyStopsGroup)));
    return -1;
    }
-}
+
 
 int result = OrderSend(
                         Symbol(),                   // symbol
@@ -157,13 +160,12 @@ double price =  baseprice - ( DistanceBetweenSellStops * index + PIPsToStartSell
 double stopLoss = StopLossSells !=0 ? price + StopLossSells * pip : 0;
 double takeProfit = TakeProfitSells != 0 ? price - TakeProfitSells * pip : 0;
 
-if ( MinSpaceBetweenPositions !=0){
-   bool spaceAvailable = clearSpaceForPosition(price,MinSpaceBetweenPositions,OP_SELLSTOP,SellStopsGroup);
+
+   bool spaceAvailable = clearSpaceForPosition(price,OP_SELLSTOP,SellStopsGroup);
    if( !spaceAvailable) {
       Print( "Space not available for SellStop at ", price, " with group ", getGroupName(createMagicNumber(DAPositionCreator_ID, SellStopsGroup)));
    return -1;
    }
-}
 
 int result = OrderSend(
                         Symbol(),                   // symbol
@@ -279,22 +281,67 @@ int ChartWidthInPixels(const long chart_ID=0)
   }
  
  
- bool clearSpaceForPosition(double price, int pips, int operation, int group)
+ bool clearSpaceForPosition(double price, int operation, int group)
  {
    int positions[1000];
-   int c = getPositionsInRange(Symbol(), operation, price, pips, positions);
    
-   for( int i =0; i< c; ++i)
-   {  
-      if(OrderSelect(positions[i], SELECT_BY_TICKET) ){
-         if(getGroup(OrderMagicNumber()) <= group){
-            return false;
-         }
-         else {
-            OrderDelete(positions[i]);
+   if( LongTermSpacing != 0  && group == LongTerm)
+   {
+      int c = getPositionsInRange(Symbol(), operation, price, LongTermSpacing, positions,SpaceExistingPositions, LongTerm);
+      if ( c > 0)  { return false; }
+         
+   }
+   
+   if( MediumTermSpacing != 0 && group <= MediumTerm )
+   {
+      int c = getPositionsInRange(Symbol(), operation, price, MediumTermSpacing, positions,SpaceExistingPositions, MediumTerm);
+      for( int i =0; i< c; ++i)
+      {  
+       if(OrderSelect(positions[i], SELECT_BY_TICKET) ){
+            if( OrderType()==OP_BUY || OrderType() == OP_SELL || group == MediumTerm ){
+               return false;
+          }
+          else {
+             bool bResult = OrderDelete(positions[i]);
+             if (!bResult) { Print ( "Could not delete order: ", positions[i]); }
+            }
          }
       }
    }
    
+   if( ShortTermSpacing != 0 && group <= ShortTerm )
+   {
+      int c = getPositionsInRange(Symbol(), operation, price, ShortTermSpacing, positions,SpaceExistingPositions, ShortTerm);
+      for( int i =0; i< c; ++i)
+      {  
+       if(OrderSelect(positions[i], SELECT_BY_TICKET) ){
+            if( OrderType()==OP_BUY || OrderType() == OP_SELL || group == ShortTerm ){
+               return false;
+          }
+          else {
+            bool bResult = OrderDelete(positions[i]);
+             if (!bResult) { Print ( "Could not delete order: ", positions[i]); }
+            }
+         }
+      }
+   }
+   
+   if( UserGroupSpacing != 0 )
+   {
+      int c = getPositionsInRange(Symbol(), operation, price, UserGroupSpacing, positions,SpaceExistingPositions, UserGroup);
+      for( int i =0; i< c; ++i)
+      {  
+       if(OrderSelect(positions[i], SELECT_BY_TICKET) ){
+            if( OrderType()==OP_BUY || OrderType() == OP_SELL || group == UserGroup ){
+               return false;
+          }
+          else {
+             bool bResult = OrderDelete(positions[i]);
+             if (!bResult) { Print ( "Could not delete order: ", positions[i]); }
+            }
+         }
+      }
+   }
+        
    return true; 
  } 
