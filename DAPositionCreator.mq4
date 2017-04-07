@@ -31,6 +31,7 @@ extern color LongTermColour = clrAqua;
 extern color MediumTermColour = clrGreen;
 extern color ShortTermColour = clrOrangeRed;
 extern color UserGroupColour = clrBlue;
+extern bool CheckOnlySameGroupSpacing=true;
 extern bool SpaceExistingPositions = true;
 extern int UserGroupSpacing = 100;
 extern int ShortTermSpacing = 200;
@@ -116,7 +117,13 @@ double stopLoss = StopLossBuys !=0 ? price - StopLossBuys * pip : 0;
 double takeProfit = TakeProfitBuys != 0 ? price + TakeProfitBuys * pip : 0;
 
 
-   bool spaceAvailable = clearSpaceForPosition(price,OP_BUYSTOP, BuyStopsGroup);
+   bool spaceAvailable = false;
+   if(CheckOnlySameGroupSpacing){
+      spaceAvailable = checkSpaceForPosition(price,OP_BUYSTOP, BuyStopsGroup);   
+   } else {
+      spaceAvailable = clearSpaceForPosition(price,OP_BUYSTOP, BuyStopsGroup);
+   }
+   
    if( !spaceAvailable) {
       Print( "Space not available for SellStop at ", price, " with group ", getGroupName(createMagicNumber(DAPositionCreator_ID, BuyStopsGroup)));
    return -1;
@@ -161,7 +168,14 @@ double stopLoss = StopLossSells !=0 ? price + StopLossSells * pip : 0;
 double takeProfit = TakeProfitSells != 0 ? price - TakeProfitSells * pip : 0;
 
 
-   bool spaceAvailable = clearSpaceForPosition(price,OP_SELLSTOP,SellStopsGroup);
+   bool spaceAvailable = false;
+   
+   if(CheckOnlySameGroupSpacing){
+      spaceAvailable = checkSpaceForPosition(price,OP_SELLSTOP,SellStopsGroup);   
+   } else {
+      spaceAvailable = clearSpaceForPosition(price,OP_SELLSTOP,SellStopsGroup);
+   }
+   
    if( !spaceAvailable) {
       Print( "Space not available for SellStop at ", price, " with group ", getGroupName(createMagicNumber(DAPositionCreator_ID, SellStopsGroup)));
    return -1;
@@ -341,6 +355,38 @@ int ChartWidthInPixels(const long chart_ID=0)
             }
          }
       }
+   }
+        
+   return true; 
+ } 
+ 
+ bool checkSpaceForPosition(double price, int operation, int group)
+ {
+   int positions[1000];
+   
+   if( LongTermSpacing != 0  && group == LongTerm)
+   {
+      int c = getPositionsInRangeSameGroup(Symbol(), operation, price, LongTermSpacing, positions,SpaceExistingPositions, LongTerm);
+      if ( c > 0)  { return false; }
+         
+   }
+   
+   if( MediumTermSpacing != 0 && group == MediumTerm )
+   {
+      int c = getPositionsInRangeSameGroup(Symbol(), operation, price, MediumTermSpacing, positions,SpaceExistingPositions, MediumTerm);
+      if ( c > 0)  { return false; }
+   }
+   
+   if( ShortTermSpacing != 0 && group == ShortTerm )
+   {
+      int c = getPositionsInRangeSameGroup(Symbol(), operation, price, ShortTermSpacing, positions,SpaceExistingPositions, ShortTerm);
+       if ( c > 0)  { return false; }
+   }
+   
+   if( UserGroupSpacing != 0  && group == UserGroup )
+   {
+      int c = getPositionsInRangeSameGroup(Symbol(), operation, price, UserGroupSpacing, positions,SpaceExistingPositions, UserGroup);
+      if ( c > 0)  { return false; }
    }
         
    return true; 
