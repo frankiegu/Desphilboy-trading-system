@@ -15,12 +15,13 @@
 #define     MAHMARAZA_RAHVARA_ID 1921              // He loved this number, was his magic number
 
 // 3 default groups IDs long term, medium term and short term positions plus one custom group for user
-#define     LONGTERMGROUP     10000
-#define     MEDTERMGROUP      20000
-#define     SHORTTERMGROUP    30000
-#define     USERGROUP         40000
+#define     VERYLONGTERMGROUP 10000
+#define     LONGTERMGROUP     20000
+#define     MEDTERMGROUP      30000
+#define     SHORTTERMGROUP    40000
+#define     USERGROUP         50000
 
-enum Groups { NoGroup=0, LongTerm=LONGTERMGROUP, MediumTerm=MEDTERMGROUP, ShortTerm=SHORTTERMGROUP, UserGroup=USERGROUP };
+enum Groups { NoGroup=0, VeryLongTerm=VERYLONGTERMGROUP, LongTerm=LONGTERMGROUP, MediumTerm=MEDTERMGROUP, ShortTerm=SHORTTERMGROUP, UserGroup=USERGROUP };
 enum BuyTypes { Buy, BuyLimit, BuyStop};
 enum SellTypes { Sell, SellLimit, SellStop}; 
  
@@ -45,6 +46,15 @@ bool isDesphilboy( int magicNumber)
 {
    return (magicNumber % 10000) == MAHMARAZA_RAHVARA_ID;
 }
+
+bool isVeryLongTerm( int magicNumber)
+{
+   if(isDesphilboy(magicNumber)){
+      return ((magicNumber % 100000) - MAHMARAZA_RAHVARA_ID) == VERYLONGTERMGROUP;
+   }
+   return false;
+}
+
 
 bool isLongTerm( int magicNumber)
 {
@@ -88,21 +98,23 @@ return magicNumber == 0;
 
 string getGroupName( int magicNumber)
 {
-   if(isLongTerm(magicNumber)) { return "LongTerm"; }
-      else if(isMediumTerm(magicNumber)){return "MediumTerm";}
-               else if(isShortTerm(magicNumber)){return "ShortTerm";}
-                        else if(isUserGroup(magicNumber)){return "UserGroup";}
-                                 else if(isManual(magicNumber)){ return "Manual";}
-                                          else return "Unknown";
+   if(isVeryLongTerm(magicNumber)) { return "VeryLongTerm"; }
+         else if(isLongTerm(magicNumber)) { return "LongTerm"; }
+               else if(isMediumTerm(magicNumber)){return "MediumTerm";}
+                     else if(isShortTerm(magicNumber)){return "ShortTerm";}
+                           else if(isUserGroup(magicNumber)){return "UserGroup";}
+                                    else if(isManual(magicNumber)){ return "Manual";}
+                                             else return "Unknown";
 
 }
 
 
 Groups getGroup( int magicNumber )
 {
-if(isLongTerm(magicNumber)) { return LongTerm; }
-      else if(isMediumTerm(magicNumber)){return MediumTerm;}
-               else if(isShortTerm(magicNumber)){return ShortTerm;}
+if(isVeryLongTerm(magicNumber)) { return VeryLongTerm; }
+      else if(isLongTerm(magicNumber)) { return LongTerm; }
+            else if(isMediumTerm(magicNumber)){return MediumTerm;}
+                  else if(isShortTerm(magicNumber)){return ShortTerm;}
                         else if(isUserGroup(magicNumber)){return UserGroup;}
 return NoGroup;
 }
@@ -143,7 +155,7 @@ int getPositionsInterval(string symbol, int operation, double rangeLow, double r
            && (OrderType()==operation || (OrderType() == openPosType && spaceOpenPositions)) 
            && OrderOpenPrice() > rangeLow 
            && OrderOpenPrice() < rangeHi
-           && ( group == NoGroup || getGroup(OrderMagicNumber()) == group || (OrderType() == openPosType && spaceOpenPositions)))
+           && ( group == NoGroup || getGroup(OrderMagicNumber()) <= group || (OrderType() == openPosType && spaceOpenPositions)))
            {
                results[resultCounter] = OrderTicket();
                resultCounter++;
