@@ -2,22 +2,22 @@
 #property copyright "Iman Dezfuly"
 #property link      "http://www.Iman.ir"
 
-#define version      "201609121"
+#define version      "201704171"
 
 #include "./desphilboy.mqh"
 
 extern bool   AllPositions  =True;         
-extern int    TrailingStopL = 450, TrailingStopM = 270, TrailingStopS = 150, TrailingStopU = 100;            
-extern int    TrailingStepL  =70, TrailingStepM = 60, TrailingStepS = 50, TrailingStepU = 40;             
-extern FiboRetrace  RetraceFactorL=MaxRetrace, RetraceFactorM = HalfRetrace, RetraceFactorS = LowRetrace, RetraceFactorU = MinRetrace;
+extern int    TrailingStopVL = 450, TrailingStopL = 250, TrailingStopM = 140, TrailingStopS = 70, TrailingStopU = 30;            
+extern int    TrailingStepVL  =30, TrailingStepL  =30, TrailingStepM = 30, TrailingStepS = 30, TrailingStepU = 30;             
+extern FiboRetrace  RetraceFactorVL=MaxRetrace, RetraceFactorL=MaxRetrace, RetraceFactorM = HalfRetrace, RetraceFactorS = LowRetrace, RetraceFactorU = MinRetrace;
 
 
 int init()
 {
   Print("Grouped trailing stop version ",version);
-  Print("stops(L,M,S,U):", TrailingStopL, ",", TrailingStopM, ",", TrailingStopS, ",", TrailingStopU); 
-  Print("steps(L,M,S,U):", TrailingStepL, ",", TrailingStepM, ",", TrailingStepS, ",", TrailingStepU);
-  Print("Retraces(L,M,S,U):", RetraceFactorL, ",", RetraceFactorM, ",", RetraceFactorS, ",", RetraceFactorU);
+  Print("stops(VL,L,M,S,U):", TrailingStopVL, ",",TrailingStopL, ",", TrailingStopM, ",", TrailingStopS, ",", TrailingStopU); 
+  Print("steps(VL,L,M,S,U):", TrailingStepVL, ",", TrailingStepL, ",", TrailingStepM, ",", TrailingStepS, ",", TrailingStepU);
+  Print("Retraces(VL,L,M,S,U):", RetraceFactorVL, ",", RetraceFactorL, ",", RetraceFactorM, ",", RetraceFactorS, ",", RetraceFactorU);
   return(0); 
 }
 
@@ -32,10 +32,11 @@ int init()
         {
            if (AllPositions || OrderSymbol()==Symbol()) 
            {
-               if(isLongTerm(OrderMagicNumber())) {TrailingPositions(TrailingStopL, TrailingStepL, RetraceFactorL);}
-                  else if(isMediumTerm(OrderMagicNumber())){TrailingPositions(TrailingStopM, TrailingStepM, RetraceFactorM);}
-                     else if(isShortTerm(OrderMagicNumber())){TrailingPositions(TrailingStopS, TrailingStepS, RetraceFactorS);}
-                        else if(isUserGroup(OrderMagicNumber())){TrailingPositions(TrailingStopU, TrailingStepU, RetraceFactorU);}
+           if(isVeryLongTerm(OrderMagicNumber())) {TrailingPositions(TrailingStopVL, TrailingStepVL, RetraceFactorVL);}
+                  else if(isLongTerm(OrderMagicNumber())) {TrailingPositions(TrailingStopL, TrailingStepL, RetraceFactorL);}
+                        else if(isMediumTerm(OrderMagicNumber())){TrailingPositions(TrailingStopM, TrailingStepM, RetraceFactorM);}
+                            else if(isShortTerm(OrderMagicNumber())){TrailingPositions(TrailingStopS, TrailingStepS, RetraceFactorS);}
+                                 else if(isUserGroup(OrderMagicNumber())){TrailingPositions(TrailingStopU, TrailingStepU, RetraceFactorU);}
            }
         }
      }

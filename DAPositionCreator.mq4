@@ -1,7 +1,7 @@
 // Desphilboy Advanced Position Creator
 #property copyright "Iman Dezfuly"
 #property link      "http://www.Iman.ir"
-#define version      "201703011"
+#define version      "2017041711"
 
 #include "./desphilboy.mqh"
 
@@ -25,8 +25,9 @@ extern int TakeProfitSells = 0;
 extern int TradesExpireAfterHours = 0;
 extern color ColourBuys = clrNONE;
 extern color ColourSells = clrNONE;
-extern int Slippage = 20;
+extern int Slippage = 30;
 extern bool PaintPositions = true;
+extern color VeryLongTermColour = clrBlanchedAlmond;
 extern color LongTermColour = clrAqua;
 extern color MediumTermColour = clrGreen;
 extern color ShortTermColour = clrOrangeRed;
@@ -34,9 +35,10 @@ extern color UserGroupColour = clrBlue;
 extern bool CheckOnlySameGroupSpacing=true;
 extern bool SpaceExistingPositions = true;
 extern int UserGroupSpacing = 100;
-extern int ShortTermSpacing = 200;
-extern int MediumTermSpacing = 300;
-extern int LongTermSpacing = 400;
+extern int ShortTermSpacing = 120;
+extern int MediumTermSpacing = 200;
+extern int LongTermSpacing = 300;
+extern int VeryLongTermSpacing = 500;
 
 static bool once = false;
 
@@ -82,6 +84,7 @@ void start()
    {  
       doPositions();
       once = false;
+      if (PaintPositions) paintPositions();
    }
   return;
 }
@@ -247,9 +250,10 @@ int x;
                else if(getGroup(OrderMagicNumber()) == ShortTerm ) { colour = ShortTermColour; }
                      else if(getGroup(OrderMagicNumber()) == MediumTerm ) { colour = MediumTermColour; }
                            else if(getGroup(OrderMagicNumber()) == LongTerm ) { colour = LongTermColour; }
-                                 else {
-                                    colour = clrNONE;
-                                 }
+                                 else if(getGroup(OrderMagicNumber()) == VeryLongTerm ) { colour = VeryLongTermColour; }
+                                       else {
+                                           colour = clrNONE;
+                                        }
             name = Symbol() + "-" + getGroupName(OrderMagicNumber()) + "-" + IntegerToString(i);
             bool bResult = ObjectCreate(
                               chartId
@@ -299,11 +303,28 @@ int ChartWidthInPixels(const long chart_ID=0)
  {
    int positions[1000];
    
-   if( LongTermSpacing != 0  && group == LongTerm)
+   if( VeryLongTermSpacing != 0  && group == VeryLongTerm)
    {
-      int c = getPositionsInRange(Symbol(), operation, price, LongTermSpacing, positions,SpaceExistingPositions, LongTerm);
+      int c = getPositionsInRange(Symbol(), operation, price, VeryLongTermSpacing, positions,SpaceExistingPositions, VeryLongTerm);
       if ( c > 0)  { return false; }
          
+   }
+   
+   if( LongTermSpacing != 0 && group <= LongTerm )
+   {
+      int c = getPositionsInRange(Symbol(), operation, price, LongTermSpacing, positions,SpaceExistingPositions, LongTerm);
+      for( int i =0; i< c; ++i)
+      {  
+       if(OrderSelect(positions[i], SELECT_BY_TICKET) ){
+            if( OrderType()==OP_BUY || OrderType() == OP_SELL || group == LongTerm ){
+               return false;
+          }
+          else {
+             bool bResult = OrderDelete(positions[i]);
+             if (!bResult) { Print ( "Could not delete order: ", positions[i]); }
+            }
+         }
+      }
    }
    
    if( MediumTermSpacing != 0 && group <= MediumTerm )
@@ -363,6 +384,13 @@ int ChartWidthInPixels(const long chart_ID=0)
  bool checkSpaceForPosition(double price, int operation, int group)
  {
    int positions[1000];
+   
+   if( VeryLongTermSpacing != 0  && group == VeryLongTerm)
+   {
+      int c = getPositionsInRangeSameGroup(Symbol(), operation, price, VeryLongTermSpacing, positions,SpaceExistingPositions, VeryLongTerm);
+      if ( c > 0)  { return false; }
+         
+   }
    
    if( LongTermSpacing != 0  && group == LongTerm)
    {
