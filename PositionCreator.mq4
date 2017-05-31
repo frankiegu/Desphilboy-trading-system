@@ -1,44 +1,55 @@
-// Desphilboy Advanced Position Creator
+// Desphilboy Position Creator
 #property copyright "Iman Dezfuly"
 #property link      "http://www.Iman.ir"
-#define version      "2017041711"
+#define version      "201704201"
 
 #include "./desphilboy.mqh"
 
 extern bool    CreatePositions = false;
-extern int     NumberOfBuyStops  = 5;
-extern int     NumberOfSellStops  = 5;
+extern int     BuyArea = 500;
+extern int     SellArea = 500;
 extern double  BuyLots = 0.01;
 extern double  SellLots = 0.01;
 extern double  StartingPrice = 0.0;
-extern int     PIPsToStartBuyStops = 100;
-extern int     PIPsToStartSellStops = 100;
-extern int     DistanceBetweenBuyStops = 250;
-extern int     DistanceBetweenSellStops = 250;
-extern Groups  BuyStopsGroup = ShortTerm;
-extern Groups  SellStopsGroup = ShortTerm;
+extern int     PIPsToStart = 100;
+extern int     UserGroupSpacing = 100;
+extern int     ShortTermSpacing = 120;
+extern int     MediumTermSpacing = 200;
+extern int     LongTermSpacing = 300;
+extern int     VeryLongTermSpacing = 500;
 
-extern int StopLossBuys = 0;
-extern int TakeProfitBuys = 0;
-extern int StopLossSells = 0;
-extern int TakeProfitSells = 0;
-extern int TradesExpireAfterHours = 0;
-extern color ColourBuys = clrNONE;
-extern color ColourSells = clrNONE;
-extern int Slippage = 30;
+extern int     MinSpace = 80;
+
+extern bool    CheckNetPosition = true;
+
+extern bool    CreateUserGroup = true;
+extern bool    CreateShortTerm = true;
+extern bool    CreateMediumTerm = true;
+extern bool    CreateLongTerm = true;
+extern bool    CreateVeryLongTerm = true;
+
 extern bool PaintPositions = true;
 extern color VeryLongTermColour = clrBlanchedAlmond;
 extern color LongTermColour = clrAqua;
 extern color MediumTermColour = clrGreen;
 extern color ShortTermColour = clrOrangeRed;
 extern color UserGroupColour = clrBlue;
-extern bool CheckOnlySameGroupSpacing=true;
+
+extern int StopLossUser = 0;
+extern int TakeProfitUser = 0;
+extern int StopLossShort = 0;
+extern int TakeProfitShort = 0;
+extern int StopLossMedium = 0;
+extern int TakeProfitMedium = 0;
+extern int StopLossLong = 0;
+extern int TakeProfitLong = 0;
+extern int StopLossVeryLong = 0;
+extern int TakeProfitVeryLong = 0;
+extern int TradesExpireAfterHours = 0;
+extern int Slippage = 30;
+
 extern bool SpaceExistingPositions = true;
-extern int UserGroupSpacing = 100;
-extern int ShortTermSpacing = 120;
-extern int MediumTermSpacing = 200;
-extern int LongTermSpacing = 300;
-extern int VeryLongTermSpacing = 500;
+
 
 static bool once = false;
 
@@ -46,7 +57,7 @@ static bool once = false;
 
 void init()
 {
-   Print("Desphilboy Advanced position creator ",version, " on ", Symbol());
+   Print("Desphilboy position creator ",version, " on ", Symbol());
     
    if (PaintPositions) paintPositions();
    
@@ -108,14 +119,25 @@ int doPositions()
 
 
 
-int createBuyStop( int index)
+int createBuyStops()
 {
 
+double pip = MarketInfo(Symbol(), MODE_POINT);
 datetime now = TimeCurrent();
 datetime expiry = TradesExpireAfterHours != 0 ? now + TradesExpireAfterHours * 3600 : 0;
-double baseprice = StartingPrice == 0.0 ? Ask : StartingPrice;
-double pip = MarketInfo(Symbol(), MODE_POINT);
-double price = baseprice + ( DistanceBetweenBuyStops * index + PIPsToStartBuyStops) * pip;
+double basePrice = (StartingPrice == 0.0 ? Ask : StartingPrice) + PIPsToStart * pip;
+double endPrice = baseprice + BuyArea * pip;
+
+double price,lastUser, lastShort, lastMedium, lastLong, lastVeryLong;
+price = lastUser = lastShort = lastMedium = lastLong = lastVeryLong = basePrice;
+
+while ( price < endPrice ){ 
+   if( checkForBuyUser(basePrice, price, lastUser) ) {
+         buyUser(price);
+         
+   }
+
+}
 double stopLoss = StopLossBuys !=0 ? price - StopLossBuys * pip : 0;
 double takeProfit = TakeProfitBuys != 0 ? price + TakeProfitBuys * pip : 0;
 
@@ -144,7 +166,7 @@ int result = OrderSend(
                         NULL,                      // comment
                         createMagicNumber(DAPositionCreator_ID, BuyStopsGroup),           // magic number
                         expiry,                       // pending order expiration
-                        ColourBuys                    // color
+                        clrNONE                    // color
    );
    
 if( result == -1 ) {
@@ -321,7 +343,7 @@ int ChartWidthInPixels(const long chart_ID=0)
           }
           else {
              bool bResult = OrderDelete(positions[i]);
-             if (!bResult) { Print ( "Could not delete order: ", positions[i]); } else { Print ( "deleted order: ", positions[i]); }
+             if (!bResult) { Print ( "Could not delete order: ", positions[i]); }
             }
          }
       }
