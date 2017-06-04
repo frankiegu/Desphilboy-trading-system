@@ -24,6 +24,7 @@
 enum Groups { NoGroup=0, VeryLongTerm=VERYLONGTERMGROUP, LongTerm=LONGTERMGROUP, MediumTerm=MEDTERMGROUP, ShortTerm=SHORTTERMGROUP, UserGroup=USERGROUP };
 enum BuyTypes { Buy, BuyLimit, BuyStop};
 enum SellTypes { Sell, SellLimit, SellStop}; 
+enum TradeActs { Initialize, Repair, Append, Terminate, NoAction };
  
 
 // EA signature on the position

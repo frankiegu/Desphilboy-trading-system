@@ -1,59 +1,84 @@
 // Desphilboy Position Creator
 #property copyright "Iman Dezfuly"
 #property link      "http://www.Iman.ir"
-#define version      "201704201"
+#define version      "201706021"
 
 #include "./desphilboy.mqh"
 
-extern bool    CreatePositions = false;
-extern int     BuyArea = 500;
-extern int     SellArea = 500;
+extern TradeActs    Action = NoAction;
+
 extern double  BuyLots = 0.01;
 extern double  SellLots = 0.01;
 extern double  StartingPrice = 0.0;
-extern int     PIPsToStart = 100;
+
+extern int     PIPsToStartVL = 1000;
+extern int     PIPsToStartL = 640;
+extern int     PIPsToStartM = 380;
+extern int     PIPsToStartS = 210;
+extern int     PIPsToStartU = 80;
+
+extern int     VeryLongTermDistance = 2000;
+extern int     LongTermDistance = 1000;
+extern int     MediumTermDistance = 500;
+extern int     ShortTermDistance = 250;
+extern int     UserGroupDistance = 120;
+
+extern int     VeryLongTermSpacing = 450;
+extern int     LongTermSpacing = 350;
+extern int     MediumTermSpacing = 250;
+extern int     ShortTermSpacing = 150;
 extern int     UserGroupSpacing = 100;
-extern int     ShortTermSpacing = 120;
-extern int     MediumTermSpacing = 200;
-extern int     LongTermSpacing = 300;
-extern int     VeryLongTermSpacing = 500;
 
-extern int     MinSpace = 80;
+extern bool    CreateBuys = true;
+extern bool    CreateSells = true;
 
-extern bool    CheckNetPosition = true;
+extern int    UserGroupBuys = 11;
+extern int    ShortTermBuys = 6;
+extern int    MediumTermBuys = 3;
+extern int    LongTermBuys = 1;
+extern int    VeryLongTermBuys = 1;
 
-extern bool    CreateUserGroup = true;
-extern bool    CreateShortTerm = true;
-extern bool    CreateMediumTerm = true;
-extern bool    CreateLongTerm = true;
-extern bool    CreateVeryLongTerm = true;
+extern int    UserGroupSells = 11;
+extern int    ShortTermSells = 6;
+extern int    MediumTermSells = 3;
+extern int    LongTermSells = 1;
+extern int    VeryLongTermSells = 1;
 
 extern bool PaintPositions = true;
+
 extern color VeryLongTermColour = clrBlanchedAlmond;
 extern color LongTermColour = clrAqua;
 extern color MediumTermColour = clrGreen;
 extern color ShortTermColour = clrOrangeRed;
 extern color UserGroupColour = clrBlue;
 
-extern int StopLossUser = 0;
-extern int TakeProfitUser = 0;
-extern int StopLossShort = 0;
-extern int TakeProfitShort = 0;
-extern int StopLossMedium = 0;
-extern int TakeProfitMedium = 0;
-extern int StopLossLong = 0;
-extern int TakeProfitLong = 0;
 extern int StopLossVeryLong = 0;
 extern int TakeProfitVeryLong = 0;
-extern int TradesExpireAfterHours = 0;
-extern int Slippage = 30;
+extern int StopLossLong = 0;
+extern int TakeProfitLong = 0;
+extern int StopLossMedium = 0;
+extern int TakeProfitMedium = 0;
+extern int StopLossShort = 0;
+extern int TakeProfitShort = 0;
+extern int StopLossUser = 0;
+extern int TakeProfitUser = 0;
 
 extern bool SpaceExistingPositions = true;
+
+extern bool CheckOnlySameGroupSpacing = false;
+
+extern int Slippage = 30;
+
+extern int TradesExpireAfterHours = 0;
+
+
+
 
 
 static bool once = false;
 
 #define delaySecondsBeforeConfirm 2
+#define DELAY 200
 
 void init()
 {
@@ -61,20 +86,17 @@ void init()
     
    if (PaintPositions) paintPositions();
    
-   if ( CreatePositions ) { 
+   if ( Action != NoAction ) { 
       EventSetTimer(delaySecondsBeforeConfirm); 
-      CreatePositions = false;
-   }
-   
-   
-   
+      }
+
 return;
 }
 
 
 void OnTimer() {
    EventKillTimer();
-   int result = MessageBox("Are you sure you want to create " + Symbol() +" positions according to params?",
+   int result = MessageBox("Are you sure you want to Alter " + Symbol() +" positions according to params?",
                               "Confirm creation of positions:",
                               MB_OKCANCEL + MB_ICONWARNING +MB_DEFBUTTON2
                               );
@@ -91,26 +113,202 @@ void OnTimer() {
 void start() 
 {
 
-  if(once) 
-   {  
-      doPositions();
+  if(once) {
+      if ( Action == Initialize ) {
+            doInitialize();
+         } else if ( Action == Repair ) {
+                        doRepair();
+                     } else if ( Action == Append ) {
+                                    doAppend();
+                                 } else if ( Action == Terminate ) {
+                                                doTerminate();
+                                             }
+        }
+            
       once = false;
-      if (PaintPositions) paintPositions();
-   }
+      if (PaintPositions) {
+            paintPositions();
+         }
   return;
+}
+
+int doInitialize() {
+clearPositions(true);
+Sleep(10 * DELAY);
+doPositions();
+
+return 0;
+}
+ 
+int doRepair() {
+clearPositions(false);
+Sleep(10 * DELAY);
+doPositions();
+
+return 0;
+}
+                    
+int doAppend() {
+doPositions();
+
+return 0;
+}
+
+int doTerminate() {
+clearPositions();
+Sleep(10 * DELAY);
+clearPositions();
+return 0;
 }
 
 
 int doPositions()
 {
-   
-   for(int i=0; i< NumberOfBuyStops; ++i){
-      createBuyStop(i);
-      }
+   if ( CreateBuys ) {
+            for(int i=0; i< VeryLongTermBuys; ++i) {
+                  createBuyStop(
+                   StartingPrice,
+                   i,
+                   PIPsToStartVL,
+                   StopLossVeryLong,
+                   TakeProfitVeryLong,
+                   VeryLongTerm,
+                   VeryLongTermDistance,
+                   BuyLots,
+                   Slippage,
+                   TradesExpireAfterHours);
+                   Sleep(DELAY);
+               }
+               for(int i=0; i< LongTermBuys; ++i) {
+                  createBuyStop(
+                   StartingPrice,
+                   i,
+                   PIPsToStartL,
+                   StopLossLong,
+                   TakeProfitLong,
+                   LongTerm,
+                   LongTermDistance,
+                   BuyLots,
+                   Slippage,
+                   TradesExpireAfterHours);
+                   Sleep(DELAY);
+               }
+               for(int i=0; i< MediumTermBuys; ++i) {
+                  createBuyStop(
+                   StartingPrice,
+                   i,
+                   PIPsToStartM,
+                   StopLossMedium,
+                   TakeProfitMedium,
+                   MediumTerm,
+                   MediumTermDistance,
+                   BuyLots,
+                   Slippage,
+                   TradesExpireAfterHours);
+                   Sleep(DELAY);
+               }
+               for(int i=0; i< ShortTermBuys; ++i) {
+                  createBuyStop(
+                   StartingPrice,
+                   i,
+                   PIPsToStartS,
+                   StopLossShort,
+                   TakeProfitShort,
+                   ShortTerm,
+                   ShortTermDistance,
+                   BuyLots,
+                   Slippage,
+                   TradesExpireAfterHours);
+                   Sleep(DELAY);
+               }
+               for(int i=0; i< UserGroupBuys; ++i) {
+                  createBuyStop(
+                   StartingPrice,
+                   i,
+                   PIPsToStartU,
+                   StopLossUser,
+                   TakeProfitUser,
+                   UserGroup,
+                   UserGroupDistance,
+                   BuyLots,
+                   Slippage,
+                   TradesExpireAfterHours);
+                   Sleep(DELAY);
+               }
+       }
 
-   for(int j=0; j< NumberOfSellStops; ++j){
-       createSellStop(j);             
-   }
+   if ( CreateSells ) {
+            for(int i=0; i< VeryLongTermSells; ++i) {
+                  createSellStop(
+                   StartingPrice,
+                   i,
+                   PIPsToStartVL,
+                   StopLossVeryLong,
+                   TakeProfitVeryLong,
+                   VeryLongTerm,
+                   VeryLongTermDistance,
+                   SellLots,
+                   Slippage,
+                   TradesExpireAfterHours);
+                   Sleep(DELAY);
+               }
+               for(int i=0; i< LongTermSells; ++i) {
+                  createSellStop(
+                  StartingPrice,
+                   i,
+                   PIPsToStartL,
+                   StopLossLong,
+                   TakeProfitLong,
+                   LongTerm,
+                   LongTermDistance,
+                   SellLots,
+                   Slippage,
+                   TradesExpireAfterHours);
+                   Sleep(DELAY);
+               }
+               for(int i=0; i< MediumTermSells; ++i) {
+                  createSellStop(
+                  StartingPrice,
+                   i,
+                   PIPsToStartM,
+                   StopLossMedium,
+                   TakeProfitMedium,
+                   MediumTerm,
+                   MediumTermDistance,
+                   SellLots,
+                   Slippage,
+                   TradesExpireAfterHours);
+                   Sleep(DELAY);
+               }
+               for(int i=0; i< ShortTermSells; ++i) {
+                  createSellStop(
+                  StartingPrice,
+                   i,
+                   PIPsToStartS,
+                   StopLossShort,
+                   TakeProfitShort,
+                   ShortTerm,
+                   ShortTermDistance,
+                   SellLots,
+                   Slippage,
+                   TradesExpireAfterHours);
+                   Sleep(DELAY);
+               }
+               for(int i=0; i< UserGroupSells; ++i) {
+                  createSellStop(
+                  StartingPrice,
+                   i,
+                   PIPsToStartU,
+                   StopLossUser,
+                   TakeProfitUser,
+                   UserGroup,
+                   UserGroupDistance,
+                   SellLots,
+                   Slippage,
+                   TradesExpireAfterHours);
+                   Sleep(DELAY);
+               }
+       }
 
    return(0); 
 }
@@ -119,25 +317,22 @@ int doPositions()
 
 
 
-int createBuyStops()
+int createBuyStop( double startingPrice,
+                    int index, 
+                    int PIPsToStart,
+                    int StopLossBuys,
+                    int TakeProfitBuys,
+                    Groups BuyStopsGroup,
+                    int distance,
+                    double buyLots,
+                    int slippage,
+                    int tradesExpireAfterHours)
 {
-
-double pip = MarketInfo(Symbol(), MODE_POINT);
 datetime now = TimeCurrent();
-datetime expiry = TradesExpireAfterHours != 0 ? now + TradesExpireAfterHours * 3600 : 0;
-double basePrice = (StartingPrice == 0.0 ? Ask : StartingPrice) + PIPsToStart * pip;
-double endPrice = baseprice + BuyArea * pip;
-
-double price,lastUser, lastShort, lastMedium, lastLong, lastVeryLong;
-price = lastUser = lastShort = lastMedium = lastLong = lastVeryLong = basePrice;
-
-while ( price < endPrice ){ 
-   if( checkForBuyUser(basePrice, price, lastUser) ) {
-         buyUser(price);
-         
-   }
-
-}
+datetime expiry = tradesExpireAfterHours != 0 ? now + tradesExpireAfterHours * 3600 : 0;
+double baseprice = startingPrice == 0.0 ? Ask : startingPrice;
+double pip = MarketInfo(Symbol(), MODE_POINT);
+double price = baseprice + ( distance * index + PIPsToStart) * pip;
 double stopLoss = StopLossBuys !=0 ? price - StopLossBuys * pip : 0;
 double takeProfit = TakeProfitBuys != 0 ? price + TakeProfitBuys * pip : 0;
 
@@ -158,9 +353,9 @@ double takeProfit = TakeProfitBuys != 0 ? price + TakeProfitBuys * pip : 0;
 int result = OrderSend(
                         Symbol(),                   // symbol
                         OP_BUYSTOP,                 // operation
-                        BuyLots,                    // volume   
+                        buyLots,                    // volume   
                         price,                      // price
-                        Slippage,                   // slippage
+                        slippage,                   // slippage
                         stopLoss,                  // stop loss
                         takeProfit,                 // take profit
                         NULL,                      // comment
@@ -182,13 +377,22 @@ return result;
 
 
 
-int createSellStop( int index)
+int createSellStop( double startingPrice,
+                    int index, 
+                    int PIPsToStart,
+                    int StopLossSells,
+                    int TakeProfitSells,
+                    Groups SellStopsGroup,
+                    int distance,
+                    double sellLots,
+                    int slippage,
+                    int tradesExpireAfterHours)
 {
 datetime now = TimeCurrent();
-datetime expiry = TradesExpireAfterHours != 0 ? now + TradesExpireAfterHours * 3600 : 0;
+datetime expiry = tradesExpireAfterHours != 0 ? now + tradesExpireAfterHours * 3600 : 0;
 double pip = MarketInfo(Symbol(), MODE_POINT);
-double baseprice = StartingPrice == 0.0 ? Bid : StartingPrice;
-double price =  baseprice - ( DistanceBetweenSellStops * index + PIPsToStartSellStops) * pip;
+double baseprice = startingPrice == 0.0 ? Bid : startingPrice;
+double price =  baseprice - ( distance * index + PIPsToStart) * pip;
 double stopLoss = StopLossSells !=0 ? price + StopLossSells * pip : 0;
 double takeProfit = TakeProfitSells != 0 ? price - TakeProfitSells * pip : 0;
 
@@ -209,15 +413,15 @@ double takeProfit = TakeProfitSells != 0 ? price - TakeProfitSells * pip : 0;
 int result = OrderSend(
                         Symbol(),                   // symbol
                         OP_SELLSTOP,                 // operation
-                        SellLots,                    // volume   
+                        sellLots,                    // volume   
                         price,                      // price
-                        Slippage,                   // slippage
+                        slippage,                   // slippage
                         stopLoss,                  // stop loss
                         takeProfit,                 // take profit
                         NULL,                      // comment
                         createMagicNumber(DAPositionCreator_ID, SellStopsGroup),           // magic number
                         expiry,                       // pending order expiration
-                        ColourSells                    // color
+                        clrNONE                    // color
    );
    
 if( result == -1 ) {
@@ -343,7 +547,7 @@ int ChartWidthInPixels(const long chart_ID=0)
           }
           else {
              bool bResult = OrderDelete(positions[i]);
-             if (!bResult) { Print ( "Could not delete order: ", positions[i]); }
+             if (!bResult) { Print ( "Could not delete order: ", positions[i]); } else { Print ( "deleted order: ", positions[i]); }
             }
          }
       }
@@ -441,3 +645,35 @@ int ChartWidthInPixels(const long chart_ID=0)
         
    return true; 
  } 
+ 
+int clearPositions( bool all=false, int slippage =35)
+{
+
+for(int i=0; i<OrdersTotal(); i++) {
+     
+        if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) {
+        
+           if ( OrderSymbol()==Symbol()) {
+                               
+               if (all || OrderType() == OP_BUYSTOP || OrderType() == OP_SELLSTOP) {
+                     int result = false;
+                     if(OrderType() == OP_BUY) {
+                              result = OrderClose(OrderTicket(),OrderLots(),Bid,slippage);
+                              } 
+                     if(OrderType() == OP_SELL) {
+                               result = OrderClose(OrderTicket(),OrderLots(),Ask,slippage);   
+                               }
+                     if(OrderType() == OP_SELLSTOP || OrderType() == OP_BUYSTOP) {          
+                               result = OrderDelete(OrderTicket());
+                                       }
+                     if( !result ) {
+                        Print( "Order ", OrderTicket(), " delete failed.");
+                       }
+                              
+               }
+            }
+         }
+      }
+
+return 0;
+}
