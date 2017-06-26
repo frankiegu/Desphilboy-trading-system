@@ -77,8 +77,8 @@ extern int TradesExpireAfterHours = 0;
 
 static bool once = false;
 
-#define delaySecondsBeforeConfirm 2
-#define DELAY 200
+#define delaySecondsBeforeConfirm 5
+#define DELAY 300
 
 void init()
 {
