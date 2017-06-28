@@ -11,11 +11,11 @@ extern double  BuyLots = 0.01;
 extern double  SellLots = 0.01;
 extern double  StartingPrice = 0.0;
 
-extern int     PIPsToStartVL = 1000;
-extern int     PIPsToStartL = 640;
-extern int     PIPsToStartM = 380;
-extern int     PIPsToStartS = 210;
-extern int     PIPsToStartU = 80;
+extern int     PIPsToStartVL = 1100;
+extern int     PIPsToStartL = 730;
+extern int     PIPsToStartM = 460;
+extern int     PIPsToStartS = 280;
+extern int     PIPsToStartU = 140;
 
 extern int     VeryLongTermDistance = 2000;
 extern int     LongTermDistance = 1000;
