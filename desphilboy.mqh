@@ -228,23 +228,23 @@ int getPositionsInRangeSameGroup(string symbol, int operation, double center, in
 }
 
 
-int getCurrentTrailingStop( int tradeTicket, int& trailingInfo[][])
+int getCurrentTrailingStop( int tradeTicket, int& trailingInfo[][], bool lifePeriodEffectiveAlways)
 {
 
 if( !OrderSelect(tradeTicket, SELECT_BY_TICKET, MODE_TRADES) ) { return 0; }
 
 GroupIds orderGroup = getGroupId(OrderMagicNumber());
 
-if( OrderStopLoss() != 0) {
-   
-   return trailingInfo[orderGroup][TrailingStop];
-}
- 
 if( trailingInfo[orderGroup][LifePeriod] == PERIOD_CURRENT) {
    
    return trailingInfo[orderGroup][TrailingStop];
 }
 
+if( OrderStopLoss() != 0  && !lifePeriodEffectiveAlways ) {
+   
+   return trailingInfo[orderGroup][TrailingStop];
+}
+ 
 int minutesElapsed = getMinutesOld(OrderOpenTime());
 int lifeTimeInMinutes = trailingInfo[orderGroup][LifePeriod];
 int timesLifeTimeElapsed = (int) (minutesElapsed / lifeTimeInMinutes);

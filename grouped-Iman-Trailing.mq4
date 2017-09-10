@@ -11,6 +11,7 @@ extern int    TrailingStopVL = 300, TrailingStopL = 200, TrailingStopM = 110, Tr
 extern int    TrailingStepVL  =30, TrailingStepL  =30, TrailingStepM = 30, TrailingStepS = 20, TrailingStepU = 20;             
 extern FiboRetrace  RetraceFactorVL=MaxRetrace, RetraceFactorL=MaxRetrace, RetraceFactorM = HalfRetrace, RetraceFactorS = LowRetrace, RetraceFactorU = MinRetrace;
 extern LifeTimes TimeFrameVL=ThreeDays, TimeFrameL=SixteenHours, TimeFrameM=FourHours, TimeFrameS=Hour, TimeFrameU=Quarter;
+extern bool ContinueLifeTimeAfterFirstSL=True;
 
 int fillTrailingInfo( int& tinfo[][])
 {
@@ -44,13 +45,13 @@ int init()
      {
         if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) 
         {
-           if (AllPositions || OrderSymbol()==Symbol()) 
+           if ((AllPositions || OrderSymbol()==Symbol()) && (OrderType() == OP_BUY || OrderType() == OP_SELL)) 
            {
-           if(isVeryLongTerm(OrderMagicNumber())) {TrailingPositions(getCurrentTrailingStop(OrderTicket(),TrailingInfo), TrailingStepVL, RetraceFactorVL);}
-                  else if(isLongTerm(OrderMagicNumber())) {TrailingPositions(getCurrentTrailingStop(OrderTicket(),TrailingInfo), TrailingStepL, RetraceFactorL);}
-                        else if(isMediumTerm(OrderMagicNumber())){TrailingPositions(getCurrentTrailingStop(OrderTicket(),TrailingInfo), TrailingStepM, RetraceFactorM);}
-                            else if(isShortTerm(OrderMagicNumber())){TrailingPositions(getCurrentTrailingStop(OrderTicket(),TrailingInfo), TrailingStepS, RetraceFactorS);}
-                                 else if(isUserGroup(OrderMagicNumber())){TrailingPositions(getCurrentTrailingStop(OrderTicket(),TrailingInfo), TrailingStepU, RetraceFactorU);}
+           if(isVeryLongTerm(OrderMagicNumber())) {TrailingPositions(getCurrentTrailingStop(OrderTicket(),TrailingInfo, ContinueLifeTimeAfterFirstSL), TrailingStepVL, RetraceFactorVL);}
+                  else if(isLongTerm(OrderMagicNumber())) {TrailingPositions(getCurrentTrailingStop(OrderTicket(),TrailingInfo, ContinueLifeTimeAfterFirstSL), TrailingStepL, RetraceFactorL);}
+                        else if(isMediumTerm(OrderMagicNumber())){TrailingPositions(getCurrentTrailingStop(OrderTicket(),TrailingInfo, ContinueLifeTimeAfterFirstSL), TrailingStepM, RetraceFactorM);}
+                            else if(isShortTerm(OrderMagicNumber())){TrailingPositions(getCurrentTrailingStop(OrderTicket(),TrailingInfo, ContinueLifeTimeAfterFirstSL), TrailingStepS, RetraceFactorS);}
+                                 else if(isUserGroup(OrderMagicNumber())){TrailingPositions(getCurrentTrailingStop(OrderTicket(),TrailingInfo, ContinueLifeTimeAfterFirstSL), TrailingStepU, RetraceFactorU);}
            }
         }
      }
