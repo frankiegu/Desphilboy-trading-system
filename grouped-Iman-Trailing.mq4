@@ -7,7 +7,7 @@
 #include "./desphilboy.mqh"
 
 extern bool   AllPositions  =True;         
-extern int    TrailingStopVL = 300, TrailingStopL = 200, TrailingStopM = 110, TrailingStopS = 70, TrailingStopU = 40;            
+extern int    TrailingStopVL = 220, TrailingStopL = 160, TrailingStopM = 110, TrailingStopS = 70, TrailingStopU = 40;            
 extern int    TrailingStepVL  =30, TrailingStepL  =30, TrailingStepM = 30, TrailingStepS = 20, TrailingStepU = 20;             
 extern FiboRetrace  RetraceFactorVL=MaxRetrace, RetraceFactorL=MaxRetrace, RetraceFactorM = HalfRetrace, RetraceFactorS = LowRetrace, RetraceFactorU = MinRetrace;
 extern LifeTimes TimeFrameVL=ThreeDays, TimeFrameL=SixteenHours, TimeFrameM=FourHours, TimeFrameS=Hour, TimeFrameU=Quarter;

@@ -11,20 +11,20 @@ extern double  BuyLots = 0.01;
 extern double  SellLots = 0.01;
 extern double  StartingPrice = 0.0;
 
-extern int     PIPsToStartVL = 1100;
-extern int     PIPsToStartL = 730;
-extern int     PIPsToStartM = 460;
-extern int     PIPsToStartS = 280;
-extern int     PIPsToStartU = 140;
+extern int     PIPsToStartVL = 1120;
+extern int     PIPsToStartL = 810;
+extern int     PIPsToStartM = 520;
+extern int     PIPsToStartS = 320;
+extern int     PIPsToStartU = 160;
 
-extern int     VeryLongTermDistance = 2000;
+extern int     VeryLongTermDistance = 1000;
 extern int     LongTermDistance = 1000;
-extern int     MediumTermDistance = 500;
-extern int     ShortTermDistance = 250;
-extern int     UserGroupDistance = 120;
+extern int     MediumTermDistance = 520;
+extern int     ShortTermDistance = 270;
+extern int     UserGroupDistance = 140;
 
-extern int     VeryLongTermSpacing = 450;
-extern int     LongTermSpacing = 350;
+extern int     VeryLongTermSpacing = 350;
+extern int     LongTermSpacing = 300;
 extern int     MediumTermSpacing = 250;
 extern int     ShortTermSpacing = 150;
 extern int     UserGroupSpacing = 100;
@@ -32,9 +32,9 @@ extern int     UserGroupSpacing = 100;
 extern bool    CreateBuys = true;
 extern bool    CreateSells = true;
 
-extern int    UserGroupBuys = 11;
-extern int    ShortTermBuys = 6;
-extern int    MediumTermBuys = 3;
+extern int    UserGroupBuys = 12;
+extern int    ShortTermBuys = 7;
+extern int    MediumTermBuys = 4;
 extern int    LongTermBuys = 1;
 extern int    VeryLongTermBuys = 1;
 
@@ -78,7 +78,7 @@ extern int TradesExpireAfterHours = 0;
 static bool once = false;
 
 #define delaySecondsBeforeConfirm 5
-#define DELAY 300
+#define DELAY 500
 
 void init()
 {
@@ -133,7 +133,7 @@ void start()
 }
 
 int doInitialize() {
-clearPositions(true);
+clearPositions(false, 35, CreateBuys, CreateSells);
 Sleep(10 * DELAY);
 doPositions();
 
@@ -141,8 +141,8 @@ return 0;
 }
  
 int doRepair() {
-clearPositions(false);
-Sleep(10 * DELAY);
+clearPositions(false, 35, CreateBuys, CreateSells);
+Sleep(5 * DELAY);
 doPositions();
 
 return 0;
@@ -155,9 +155,9 @@ return 0;
 }
 
 int doTerminate() {
-clearPositions();
-Sleep(10 * DELAY);
-clearPositions();
+clearPositions(true, 35,CreateBuys, CreateSells);
+Sleep(5 * DELAY);
+clearPositions(true, 35,CreateBuys, CreateSells);
 return 0;
 }
 
@@ -646,7 +646,7 @@ int ChartWidthInPixels(const long chart_ID=0)
    return true; 
  } 
  
-int clearPositions( bool all=false, int slippage =35)
+int clearPositions( bool all=false, int slippage =35, bool buys = true, bool sells = true)
 {
 
 for(int i=0; i<OrdersTotal(); i++) {
@@ -657,13 +657,13 @@ for(int i=0; i<OrdersTotal(); i++) {
                                
                if (all || OrderType() == OP_BUYSTOP || OrderType() == OP_SELLSTOP) {
                      int result = false;
-                     if(OrderType() == OP_BUY) {
+                     if(OrderType() == OP_BUY && buys) {
                               result = OrderClose(OrderTicket(),OrderLots(),Bid,slippage);
                               } 
-                     if(OrderType() == OP_SELL) {
+                     if(OrderType() == OP_SELL && sells) {
                                result = OrderClose(OrderTicket(),OrderLots(),Ask,slippage);   
                                }
-                     if(OrderType() == OP_SELLSTOP || OrderType() == OP_BUYSTOP) {          
+                     if((OrderType() == OP_SELLSTOP && sells )|| (OrderType() == OP_BUYSTOP && buys)) {          
                                result = OrderDelete(OrderTicket());
                                        }
                      if( !result ) {
