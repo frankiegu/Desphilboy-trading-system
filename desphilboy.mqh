@@ -286,3 +286,24 @@ int diff = (int) (TimeCurrent() -  creationTime);
 
 return (int) diff / 60 ;
 }
+
+
+bool isPanic(string symbol, ENUM_TIMEFRAMES timeframe, int panicPIPS) {
+
+double minPrice = MathMin( iLow(symbol, timeframe, 0) ,iLow(symbol, timeframe, 1));
+double maxPrice = MathMax( iMax(symbol, timeframe, 0) ,iMax(symbol, timeframe, 1));
+
+double span = maxprice - minPrice;
+
+double symbolPoint = MarketInfo(symbol, MODE_POINT); 
+
+int spanPips = span/symbolPoint;
+
+return (spanPips >= panicPIPS);
+}
+
+
+
+double getNetPosition(string synbol) {
+
+}
