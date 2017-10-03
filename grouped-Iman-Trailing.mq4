@@ -7,10 +7,10 @@
 #include "./desphilboy.mqh"
 
 extern bool   AllPositions  =True;         
-extern int    TrailingStopVL = 220, TrailingStopL = 160, TrailingStopM = 110, TrailingStopS = 70, TrailingStopU = 40;            
+extern int    TrailingStopVL = 260, TrailingStopL = 240, TrailingStopM = 220, TrailingStopS = 200, TrailingStopU = 180;            
 extern int    TrailingStepVL  =30, TrailingStepL  =30, TrailingStepM = 30, TrailingStepS = 20, TrailingStepU = 20;             
 extern FiboRetrace  RetraceFactorVL=MaxRetrace, RetraceFactorL=MaxRetrace, RetraceFactorM = HalfRetrace, RetraceFactorS = LowRetrace, RetraceFactorU = MinRetrace;
-extern LifeTimes TimeFrameVL=ThreeDays, TimeFrameL=SixteenHours, TimeFrameM=FourHours, TimeFrameS=Hour, TimeFrameU=Quarter;
+extern LifeTimes TimeFrameVL=EightHours, TimeFrameL=FourHours, TimeFrameM=TwoHours, TimeFrameS=Hour, TimeFrameU=HalfHour;
 extern bool ContinueLifeTimeAfterFirstSL=True;
 
 int fillTrailingInfo( int& tinfo[][])
@@ -47,11 +47,11 @@ int init()
         {
            if ((AllPositions || OrderSymbol()==Symbol()) && (OrderType() == OP_BUY || OrderType() == OP_SELL)) 
            {
-           if(isVeryLongTerm(OrderMagicNumber())) {TrailingPositions(getCurrentTrailingStop(OrderTicket(),TrailingInfo, ContinueLifeTimeAfterFirstSL), TrailingStepVL, RetraceFactorVL);}
-                  else if(isLongTerm(OrderMagicNumber())) {TrailingPositions(getCurrentTrailingStop(OrderTicket(),TrailingInfo, ContinueLifeTimeAfterFirstSL), TrailingStepL, RetraceFactorL);}
-                        else if(isMediumTerm(OrderMagicNumber())){TrailingPositions(getCurrentTrailingStop(OrderTicket(),TrailingInfo, ContinueLifeTimeAfterFirstSL), TrailingStepM, RetraceFactorM);}
-                            else if(isShortTerm(OrderMagicNumber())){TrailingPositions(getCurrentTrailingStop(OrderTicket(),TrailingInfo, ContinueLifeTimeAfterFirstSL), TrailingStepS, RetraceFactorS);}
-                                 else if(isUserGroup(OrderMagicNumber())){TrailingPositions(getCurrentTrailingStop(OrderTicket(),TrailingInfo, ContinueLifeTimeAfterFirstSL), TrailingStepU, RetraceFactorU);}
+           if(isVeryLongTerm(OrderMagicNumber())) {TrailingPositions(getCurrentTrailingStop(OrderTicket(),TrailingInfo, ContinueLifeTimeAfterFirstSL), TrailingStepVL, getCurrentRetrace(OrderTicket(),TrailingInfo, ContinueLifeTimeAfterFirstSL));}
+                  else if(isLongTerm(OrderMagicNumber())) {TrailingPositions(getCurrentTrailingStop(OrderTicket(),TrailingInfo, ContinueLifeTimeAfterFirstSL), TrailingStepL, getCurrentRetrace(OrderTicket(),TrailingInfo, ContinueLifeTimeAfterFirstSL));}
+                        else if(isMediumTerm(OrderMagicNumber())){TrailingPositions(getCurrentTrailingStop(OrderTicket(),TrailingInfo, ContinueLifeTimeAfterFirstSL), TrailingStepM, getCurrentRetrace(OrderTicket(),TrailingInfo, ContinueLifeTimeAfterFirstSL));}
+                            else if(isShortTerm(OrderMagicNumber())){TrailingPositions(getCurrentTrailingStop(OrderTicket(),TrailingInfo, ContinueLifeTimeAfterFirstSL), TrailingStepS, getCurrentRetrace(OrderTicket(),TrailingInfo, ContinueLifeTimeAfterFirstSL));}
+                                 else if(isUserGroup(OrderMagicNumber())){TrailingPositions(getCurrentTrailingStop(OrderTicket(),TrailingInfo, ContinueLifeTimeAfterFirstSL), TrailingStepU, getCurrentRetrace(OrderTicket(),TrailingInfo, ContinueLifeTimeAfterFirstSL));}
            }
         }
      }
@@ -61,12 +61,12 @@ int init()
 //+------------------------------------------------------------------+
 //|This function trails the position which is selected.                        |
 //+------------------------------------------------------------------+
-  void TrailingPositions(int TrailingStop, int TrailingStep,FiboRetrace RetraceFactor) 
+  void TrailingPositions(int TrailingStop, int TrailingStep,double RetraceFactor) 
   {
    double pBid, pAsk, pp, pDiff, pRef, pStep, pRetraceTrail, pDirectTrail;
 //----
 
-   double RetraceValue=Fibo[RetraceFactor];
+   double RetraceValue= RetraceFactor;
    pp=MarketInfo(OrderSymbol(), MODE_POINT);
    pDirectTrail = TrailingStop * pp;
    pStep = TrailingStep * pp;

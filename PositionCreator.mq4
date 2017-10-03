@@ -1,7 +1,7 @@
 // Desphilboy Position Creator
 #property copyright "Iman Dezfuly"
 #property link      "http://www.Iman.ir"
-#define version      "201706021"
+#define version      "201709021"
 
 #include "./desphilboy.mqh"
 
@@ -11,38 +11,38 @@ extern double  BuyLots = 0.01;
 extern double  SellLots = 0.01;
 extern double  StartingPrice = 0.0;
 
-extern int     PIPsToStartVL = 1120;
-extern int     PIPsToStartL = 810;
-extern int     PIPsToStartM = 520;
-extern int     PIPsToStartS = 320;
-extern int     PIPsToStartU = 160;
+extern int     PIPsToStartVL = 1200;
+extern int     PIPsToStartL = 950;
+extern int     PIPsToStartM = 700;
+extern int     PIPsToStartS = 450;
+extern int     PIPsToStartU = 200;
 
-extern int     VeryLongTermDistance = 1000;
-extern int     LongTermDistance = 1000;
-extern int     MediumTermDistance = 520;
-extern int     ShortTermDistance = 270;
-extern int     UserGroupDistance = 140;
+extern int     VeryLongTermDistance = 1250;
+extern int     LongTermDistance = 1250;
+extern int     MediumTermDistance = 1250;
+extern int     ShortTermDistance = 1250;
+extern int     UserGroupDistance = 1250;
 
-extern int     VeryLongTermSpacing = 350;
-extern int     LongTermSpacing = 300;
-extern int     MediumTermSpacing = 250;
-extern int     ShortTermSpacing = 150;
-extern int     UserGroupSpacing = 100;
+extern int     VeryLongTermSpacing = 190;
+extern int     LongTermSpacing = 180;
+extern int     MediumTermSpacing = 160;
+extern int     ShortTermSpacing = 140;
+extern int     UserGroupSpacing = 120;
 
 extern bool    CreateBuys = true;
 extern bool    CreateSells = true;
 
-extern int    UserGroupBuys = 12;
-extern int    ShortTermBuys = 7;
-extern int    MediumTermBuys = 4;
-extern int    LongTermBuys = 1;
+extern int    UserGroupBuys = 3;
+extern int    ShortTermBuys = 3;
+extern int    MediumTermBuys = 3;
+extern int    LongTermBuys = 2;
 extern int    VeryLongTermBuys = 1;
 
-extern int    UserGroupSells = 11;
-extern int    ShortTermSells = 6;
+extern int    UserGroupSells = 3;
+extern int    ShortTermSells = 3;
 extern int    MediumTermSells = 3;
-extern int    LongTermSells = 1;
-extern int    VeryLongTermSells = 1;
+extern int    LongTermSells = 2;
+extern int    VeryLongTermSells = 2;
 
 extern bool PaintPositions = true;
 

@@ -28,7 +28,7 @@ enum SellTypes       { Sell, SellLimit, SellStop};
 enum TradeActs       { Initialize, Repair, Append, Terminate, NoAction };
 enum GroupIds        { gid_NoGroup=0, gid_VeryLongTerm=1, gid_LongTerm=2, gid_MediumTerm=3, gid_ShortTerm=4, gid_UserGroup=5 };
 enum TrailingFields  { TrailingStop=0, Step=1, Retrace=2, LifePeriod=3 };
-enum LifeTimes       { NoLifeTime=0, FiveMinutes=5, TenMinutes=10, Quarter=15, Hour=60, TwoHours=120, FourHours=240, EightHours=480, SixteenHours=960, Day=1440, TwoDays=2880, SixtyFourHours=3840, ThreeDays=4320, FiveDays=7200 };
+enum LifeTimes       { NoLifeTime=0, FiveMinutes=5, TenMinutes=10, Quarter=15, HalfHour=30, Hour=60, TwoHours=120, FourHours=240, EightHours=480, SixteenHours=960, Day=1440, TwoDays=2880, SixtyFourHours=3840, ThreeDays=4320, FiveDays=7200 };
 
  
 
@@ -247,10 +247,37 @@ if( OrderStopLoss() != 0  && !lifePeriodEffectiveAlways ) {
  
 int minutesElapsed = getMinutesOld(OrderOpenTime());
 int lifeTimeInMinutes = trailingInfo[orderGroup][LifePeriod];
-int timesLifeTimeElapsed = (int) (minutesElapsed / lifeTimeInMinutes);
+if ( lifeTimeInMinutes == 0 ) { lifeTimeInMinutes =30; } // prevent divide by zero
+double timesLifeTimeElapsed =  (minutesElapsed / lifeTimeInMinutes);
 int orderTrailingStop = (int) (trailingInfo[orderGroup][TrailingStop] / (1+timesLifeTimeElapsed));
 return  orderTrailingStop;
 }
+
+double getCurrentRetrace( int tradeTicket, int& trailingInfo[][], bool lifePeriodEffectiveAlways)
+{
+
+if( !OrderSelect(tradeTicket, SELECT_BY_TICKET, MODE_TRADES) ) { return 0; }
+
+GroupIds orderGroup = getGroupId(OrderMagicNumber());
+
+if( trailingInfo[orderGroup][LifePeriod] == PERIOD_CURRENT) {
+   
+   return Fibo[trailingInfo[orderGroup][Retrace]];
+}
+
+if( OrderStopLoss() != 0  && !lifePeriodEffectiveAlways ) {
+   
+   return Fibo[trailingInfo[orderGroup][Retrace]];
+}
+ 
+int minutesElapsed = getMinutesOld(OrderOpenTime());
+int lifeTimeInMinutes = trailingInfo[orderGroup][LifePeriod];
+if ( lifeTimeInMinutes == 0 ) { lifeTimeInMinutes =30; } // prevent divide by zero
+double timesLifeTimeElapsed =  (minutesElapsed / lifeTimeInMinutes);
+double orderRetrace =  (Fibo[trailingInfo[orderGroup][Retrace]] / (1+timesLifeTimeElapsed));
+return  orderRetrace;
+}
+
 
 
 int getMinutesOld( datetime creationTime) {
