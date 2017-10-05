@@ -7,11 +7,15 @@
 #include "./desphilboy.mqh"
 
 extern bool   AllPositions  =True;         
-extern int    TrailingStopVL = 260, TrailingStopL = 240, TrailingStopM = 220, TrailingStopS = 200, TrailingStopU = 180;            
+extern int    TrailingStopVL = 380, TrailingStopL = 400, TrailingStopM = 420, TrailingStopS = 440, TrailingStopU = 460;            
 extern int    TrailingStepVL  =30, TrailingStepL  =30, TrailingStepM = 30, TrailingStepS = 20, TrailingStepU = 20;             
 extern FiboRetrace  RetraceFactorVL=MaxRetrace, RetraceFactorL=MaxRetrace, RetraceFactorM = HalfRetrace, RetraceFactorS = LowRetrace, RetraceFactorU = MinRetrace;
 extern LifeTimes TimeFrameVL=EightHours, TimeFrameL=FourHours, TimeFrameM=TwoHours, TimeFrameS=Hour, TimeFrameU=HalfHour;
 extern bool ContinueLifeTimeAfterFirstSL=True;
+extern ENUM_TIMEFRAMES PanicTimeFrame = PERIOD_M1;
+extern int PanicPIPS = 1500;
+extern int PanicStop = 30;
+extern FiboRetrace PanicRetrace = NoRetrace;
 
 int fillTrailingInfo( int& tinfo[][])
 {
@@ -21,6 +25,7 @@ tinfo[gid_LongTerm][TrailingStop]=TrailingStopL; tinfo[gid_LongTerm][Step]=Trail
 tinfo[gid_MediumTerm][TrailingStop]=TrailingStopM; tinfo[gid_MediumTerm][Step]=TrailingStepM; tinfo[gid_MediumTerm][Retrace]=RetraceFactorM; tinfo[gid_MediumTerm][LifePeriod]=TimeFrameM;
 tinfo[gid_ShortTerm][TrailingStop]=TrailingStopS; tinfo[gid_ShortTerm][Step]=TrailingStepS; tinfo[gid_ShortTerm][Retrace]=RetraceFactorS; tinfo[gid_ShortTerm][LifePeriod]=TimeFrameS;
 tinfo[gid_UserGroup][TrailingStop]=TrailingStopU; tinfo[gid_UserGroup][Step]=TrailingStepU; tinfo[gid_UserGroup][Retrace]=RetraceFactorU; tinfo[gid_UserGroup][LifePeriod]=TimeFrameU;
+tinfo[gid_Panic][TrailingStop]=PanicStop; tinfo[gid_Panic][Step]=TrailingStepU; tinfo[gid_Panic][Retrace]=PanicRetrace; tinfo[gid_Panic][LifePeriod]=PanicTimeFrame;
 return 0;
 }
 
@@ -47,11 +52,11 @@ int init()
         {
            if ((AllPositions || OrderSymbol()==Symbol()) && (OrderType() == OP_BUY || OrderType() == OP_SELL)) 
            {
-           if(isVeryLongTerm(OrderMagicNumber())) {TrailingPositions(getCurrentTrailingStop(OrderTicket(),TrailingInfo, ContinueLifeTimeAfterFirstSL), TrailingStepVL, getCurrentRetrace(OrderTicket(),TrailingInfo, ContinueLifeTimeAfterFirstSL));}
-                  else if(isLongTerm(OrderMagicNumber())) {TrailingPositions(getCurrentTrailingStop(OrderTicket(),TrailingInfo, ContinueLifeTimeAfterFirstSL), TrailingStepL, getCurrentRetrace(OrderTicket(),TrailingInfo, ContinueLifeTimeAfterFirstSL));}
-                        else if(isMediumTerm(OrderMagicNumber())){TrailingPositions(getCurrentTrailingStop(OrderTicket(),TrailingInfo, ContinueLifeTimeAfterFirstSL), TrailingStepM, getCurrentRetrace(OrderTicket(),TrailingInfo, ContinueLifeTimeAfterFirstSL));}
-                            else if(isShortTerm(OrderMagicNumber())){TrailingPositions(getCurrentTrailingStop(OrderTicket(),TrailingInfo, ContinueLifeTimeAfterFirstSL), TrailingStepS, getCurrentRetrace(OrderTicket(),TrailingInfo, ContinueLifeTimeAfterFirstSL));}
-                                 else if(isUserGroup(OrderMagicNumber())){TrailingPositions(getCurrentTrailingStop(OrderTicket(),TrailingInfo, ContinueLifeTimeAfterFirstSL), TrailingStepU, getCurrentRetrace(OrderTicket(),TrailingInfo, ContinueLifeTimeAfterFirstSL));}
+           if(isVeryLongTerm(OrderMagicNumber())) {TrailingPositions(getCurrentTrailingStop(OrderTicket(),TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(),PanicTimeFrame,PanicPIPS)), TrailingStepVL, getCurrentRetrace(OrderTicket(),TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(),PanicTimeFrame,PanicPIPS)));}
+                  else if(isLongTerm(OrderMagicNumber())) {TrailingPositions(getCurrentTrailingStop(OrderTicket(),TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(),PanicTimeFrame,PanicPIPS)), TrailingStepL, getCurrentRetrace(OrderTicket(),TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(),PanicTimeFrame,PanicPIPS)));}
+                        else if(isMediumTerm(OrderMagicNumber())){TrailingPositions(getCurrentTrailingStop(OrderTicket(),TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(),PanicTimeFrame,PanicPIPS)), TrailingStepM, getCurrentRetrace(OrderTicket(),TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(),PanicTimeFrame,PanicPIPS)));}
+                            else if(isShortTerm(OrderMagicNumber())){TrailingPositions(getCurrentTrailingStop(OrderTicket(),TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(),PanicTimeFrame,PanicPIPS)), TrailingStepS, getCurrentRetrace(OrderTicket(),TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(),PanicTimeFrame,PanicPIPS)));}
+                                 else if(isUserGroup(OrderMagicNumber())){TrailingPositions(getCurrentTrailingStop(OrderTicket(),TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(),PanicTimeFrame,PanicPIPS)), TrailingStepU, getCurrentRetrace(OrderTicket(),TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(),PanicTimeFrame,PanicPIPS)));}
            }
         }
      }
@@ -122,3 +127,5 @@ int init()
    }
   }
 //+------------------------------------------------------------------+
+
+

@@ -9,7 +9,8 @@ extern TradeActs    Action = NoAction;
 
 extern double  BuyLots = 0.01;
 extern double  SellLots = 0.01;
-extern double  StartingPrice = 0.0;
+extern double  BuyStartingPrice = 0.0;
+extern double  SellStartingPrice = 0.0;
 
 extern int     PIPsToStartVL = 1200;
 extern int     PIPsToStartL = 950;
@@ -67,7 +68,7 @@ extern bool SpaceExistingPositions = true;
 
 extern bool CheckOnlySameGroupSpacing = false;
 
-extern int Slippage = 30;
+extern int Slippage = 50;
 
 extern int TradesExpireAfterHours = 0;
 
@@ -89,6 +90,9 @@ void init()
    if ( Action != NoAction ) { 
       EventSetTimer(delaySecondsBeforeConfirm); 
       }
+      
+      
+      
 
 return;
 }
@@ -133,7 +137,7 @@ void start()
 }
 
 int doInitialize() {
-clearPositions(false, 35, CreateBuys, CreateSells);
+clearPositions(false, Slippage, CreateBuys, CreateSells);
 Sleep(10 * DELAY);
 doPositions();
 
@@ -141,7 +145,7 @@ return 0;
 }
  
 int doRepair() {
-clearPositions(false, 35, CreateBuys, CreateSells);
+clearPositions(false, Slippage, CreateBuys, CreateSells);
 Sleep(5 * DELAY);
 doPositions();
 
@@ -155,9 +159,9 @@ return 0;
 }
 
 int doTerminate() {
-clearPositions(true, 35,CreateBuys, CreateSells);
+clearPositions(true, Slippage,CreateBuys, CreateSells);
 Sleep(5 * DELAY);
-clearPositions(true, 35,CreateBuys, CreateSells);
+clearPositions(true, Slippage,CreateBuys, CreateSells);
 return 0;
 }
 
@@ -167,7 +171,7 @@ int doPositions()
    if ( CreateBuys ) {
             for(int i=0; i< VeryLongTermBuys; ++i) {
                   createBuyStop(
-                   StartingPrice,
+                   BuyStartingPrice,
                    i,
                    PIPsToStartVL,
                    StopLossVeryLong,
@@ -181,7 +185,7 @@ int doPositions()
                }
                for(int i=0; i< LongTermBuys; ++i) {
                   createBuyStop(
-                   StartingPrice,
+                   BuyStartingPrice,
                    i,
                    PIPsToStartL,
                    StopLossLong,
@@ -195,7 +199,7 @@ int doPositions()
                }
                for(int i=0; i< MediumTermBuys; ++i) {
                   createBuyStop(
-                   StartingPrice,
+                   BuyStartingPrice,
                    i,
                    PIPsToStartM,
                    StopLossMedium,
@@ -209,7 +213,7 @@ int doPositions()
                }
                for(int i=0; i< ShortTermBuys; ++i) {
                   createBuyStop(
-                   StartingPrice,
+                   BuyStartingPrice,
                    i,
                    PIPsToStartS,
                    StopLossShort,
@@ -223,7 +227,7 @@ int doPositions()
                }
                for(int i=0; i< UserGroupBuys; ++i) {
                   createBuyStop(
-                   StartingPrice,
+                   BuyStartingPrice,
                    i,
                    PIPsToStartU,
                    StopLossUser,
@@ -240,7 +244,7 @@ int doPositions()
    if ( CreateSells ) {
             for(int i=0; i< VeryLongTermSells; ++i) {
                   createSellStop(
-                   StartingPrice,
+                   SellStartingPrice,
                    i,
                    PIPsToStartVL,
                    StopLossVeryLong,
@@ -254,7 +258,7 @@ int doPositions()
                }
                for(int i=0; i< LongTermSells; ++i) {
                   createSellStop(
-                  StartingPrice,
+                  SellStartingPrice,
                    i,
                    PIPsToStartL,
                    StopLossLong,
@@ -268,7 +272,7 @@ int doPositions()
                }
                for(int i=0; i< MediumTermSells; ++i) {
                   createSellStop(
-                  StartingPrice,
+                  SellStartingPrice,
                    i,
                    PIPsToStartM,
                    StopLossMedium,
@@ -282,7 +286,7 @@ int doPositions()
                }
                for(int i=0; i< ShortTermSells; ++i) {
                   createSellStop(
-                  StartingPrice,
+                  SellStartingPrice,
                    i,
                    PIPsToStartS,
                    StopLossShort,
@@ -296,7 +300,7 @@ int doPositions()
                }
                for(int i=0; i< UserGroupSells; ++i) {
                   createSellStop(
-                  StartingPrice,
+                  SellStartingPrice,
                    i,
                    PIPsToStartU,
                    StopLossUser,

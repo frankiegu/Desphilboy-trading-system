@@ -26,7 +26,7 @@ enum Groups          { NoGroup=0, VeryLongTerm=VERYLONGTERMGROUP, LongTerm=LONGT
 enum BuyTypes        { Buy, BuyLimit, BuyStop};
 enum SellTypes       { Sell, SellLimit, SellStop}; 
 enum TradeActs       { Initialize, Repair, Append, Terminate, NoAction };
-enum GroupIds        { gid_NoGroup=0, gid_VeryLongTerm=1, gid_LongTerm=2, gid_MediumTerm=3, gid_ShortTerm=4, gid_UserGroup=5 };
+enum GroupIds        { gid_NoGroup=0, gid_VeryLongTerm=1, gid_LongTerm=2, gid_MediumTerm=3, gid_ShortTerm=4, gid_UserGroup=5, gid_Panic=6 };
 enum TrailingFields  { TrailingStop=0, Step=1, Retrace=2, LifePeriod=3 };
 enum LifeTimes       { NoLifeTime=0, FiveMinutes=5, TenMinutes=10, Quarter=15, HalfHour=30, Hour=60, TwoHours=120, FourHours=240, EightHours=480, SixteenHours=960, Day=1440, TwoDays=2880, SixtyFourHours=3840, ThreeDays=4320, FiveDays=7200 };
 
@@ -42,7 +42,7 @@ enum LifeTimes       { NoLifeTime=0, FiveMinutes=5, TenMinutes=10, Quarter=15, H
 enum FiboRetrace {NoRetrace=0, MinRetrace, LowRetrace, HalfRetrace, MaxRetrace};
 double Fibo[]={0.000, 0.236, 0.382, 0.500, 0.618};
 
-static int TrailingInfo[gid_UserGroup +1][LifePeriod + 1]; 
+static int TrailingInfo[gid_Panic +1][LifePeriod + 1]; 
 
 // common functions to work with Magic Numbers
 int createMagicNumber( int eaId, int groupId)
@@ -228,10 +228,12 @@ int getPositionsInRangeSameGroup(string symbol, int operation, double center, in
 }
 
 
-int getCurrentTrailingStop( int tradeTicket, int& trailingInfo[][], bool lifePeriodEffectiveAlways)
+int getCurrentTrailingStop( int tradeTicket, int& trailingInfo[][], bool lifePeriodEffectiveAlways, bool panic=false)
 {
 
-if( !OrderSelect(tradeTicket, SELECT_BY_TICKET, MODE_TRADES) ) { return 0; }
+if(panic) { return trailingInfo[gid_Panic][TrailingStop];}
+
+if( !OrderSelect(tradeTicket, SELECT_BY_TICKET, MODE_TRADES) ) { return trailingInfo[gid_Panic][TrailingStop]; }
 
 GroupIds orderGroup = getGroupId(OrderMagicNumber());
 
@@ -253,10 +255,12 @@ int orderTrailingStop = (int) (trailingInfo[orderGroup][TrailingStop] / (1+times
 return  orderTrailingStop;
 }
 
-double getCurrentRetrace( int tradeTicket, int& trailingInfo[][], bool lifePeriodEffectiveAlways)
+double getCurrentRetrace( int tradeTicket, int& trailingInfo[][], bool lifePeriodEffectiveAlways, bool panic=false)
 {
 
-if( !OrderSelect(tradeTicket, SELECT_BY_TICKET, MODE_TRADES) ) { return 0; }
+if(panic) { return Fibo[trailingInfo[gid_Panic][Retrace]];}
+
+if( !OrderSelect(tradeTicket, SELECT_BY_TICKET, MODE_TRADES) ) { return Fibo[trailingInfo[gid_Panic][Retrace]]; }
 
 GroupIds orderGroup = getGroupId(OrderMagicNumber());
 
@@ -288,22 +292,70 @@ return (int) diff / 60 ;
 }
 
 
-bool isPanic(string symbol, ENUM_TIMEFRAMES timeframe, int panicPIPS) {
+double getNetPosition(string symbol) {
 
-double minPrice = MathMin( iLow(symbol, timeframe, 0) ,iLow(symbol, timeframe, 1));
-double maxPrice = MathMax( iMax(symbol, timeframe, 0) ,iMax(symbol, timeframe, 1));
+double balance=0;
 
-double span = maxprice - minPrice;
-
-double symbolPoint = MarketInfo(symbol, MODE_POINT); 
-
-int spanPips = span/symbolPoint;
-
-return (spanPips >= panicPIPS);
+for(int i=0; i<OrdersTotal(); i++) 
+     {
+        if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) 
+        {
+          if ( OrderSymbol() == symbol ) {
+            if( OrderType() == OP_BUY)    balance = balance + OrderLots();
+            if( OrderType() == OP_SELL)   balance = balance - OrderLots();
+           }
+        }
+     }
+return balance;
 }
 
 
+double getPriceOfHighest(int operation, string symbol) {
+double price=0;
 
-double getNetPosition(string synbol) {
+for(int i=0; i<OrdersTotal(); i++) 
+     {
+        if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) 
+        {
+          if ( OrderSymbol() == symbol ) {
+               if( OrderType() == operation)    price = MathMax(price,OrderOpenPrice());
+            
+           }
+        }
+     }
+return price;
+} 
 
+
+double getPriceOfLowest(int operation, string symbol) {
+double price=99990;
+
+for(int i=0; i<OrdersTotal(); i++) 
+     {
+        if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) 
+        {
+          if ( OrderSymbol() == symbol ) {
+               if( OrderType() == operation)    price = MathMin(price,OrderOpenPrice());
+            
+           }
+        }
+     }
+return price;
+} 
+
+
+
+
+bool isPanic(string symbol, ENUM_TIMEFRAMES timeframe, int panicPIPS) {
+
+double minPrice = MathMin( iLow(symbol, timeframe, 0) ,iLow(symbol, timeframe, 1));
+double maxPrice = MathMax( iHigh(symbol, timeframe, 0) ,iHigh(symbol, timeframe, 1));
+
+double span = maxPrice - minPrice;
+
+double symbolPoint = MarketInfo(symbol, MODE_POINT); 
+
+int spanPips = (int) (span/symbolPoint);
+
+return (spanPips >= panicPIPS);
 }
