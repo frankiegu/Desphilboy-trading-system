@@ -28,6 +28,11 @@ extern int TimerSeconds = 10;
 extern bool ActiveTrading = false;
 extern ENUM_TIMEFRAMES ActiveTradingTimeFrame = PERIOD_D1;
 
+bool     activeMessageFlags[100];
+bool     panicMessageFlags[100];
+
+         
+
 int fillTrailingInfo( int& tinfo[][])
 {
 tinfo[gid_NoGroup][0] = tinfo[gid_NoGroup][1] = tinfo[gid_NoGroup][2] = tinfo[gid_NoGroup][3] = 0;
@@ -48,8 +53,17 @@ int init()
   Print("steps(VL,L,M,S,U):", TrailingStepVL, ",", TrailingStepL, ",", TrailingStepM, ",", TrailingStepS, ",", TrailingStepU);
   Print("Retraces(VL,L,M,S,U):", RetraceFactorVL, ",", RetraceFactorL, ",", RetraceFactorM, ",", RetraceFactorS, ",", RetraceFactorU);
   Print("LifeTimes(VL,L,M,S,U):", TimeFrameVL, ",", TimeFrameL, ",", TimeFrameM, ",", TimeFrameS, ",", TimeFrameU);
+  string pairNames[100];
+         int numPairs= StringSplit(AllowedPairNames, ',', pairNames);
+         for( int i=0; i<numPairs; ++i) {
+          Print("Pair ", i, " name is: ", pairNames[i]);
+         }
   fillTrailingInfo(TrailingInfo);
   EventSetTimer(TimerSeconds); 
+  
+  for(int i=0; i<100; activeMessageFlags[i++]=false);
+  for(int i=0; i<100; panicMessageFlags[i++]=false);
+  
   return(0); 
 }
 
@@ -63,11 +77,18 @@ if(ActiveTrading) {
          for( int i = 0; i < 7; ++i) spikeSpacing[i] = SpikeMarginPIPs;
 
          string pairNames[100];
+                        
          int numPairs= StringSplit(AllowedPairNames, ',', pairNames);
          for( int i=0; i<numPairs; ++i) {
                if(isPanic(pairNames[i],ActiveTradingTimeFrame ,SpikePIPS)) {
+                  if(!activeMessageFlags[i]) { 
+                     Print("Active trading conditions detected on ", pairNames[i]);
+                     activeMessageFlags[i] = true;
+                  }
                   appendTradesIfAppropriate(pairNames[i],SpikeMarginPIPs, spikeSpacing,SpikePIPS,SpikeTradeLots,MaximumNetPositionLots);
-               }
+               } else {
+                        activeMessageFlags[i] = false;
+                        }
          }
       }
 
@@ -102,8 +123,14 @@ return;
          int numPairs= StringSplit(AllowedPairNames, ',', pairNames);
          for( int i=0; i<numPairs; ++i) {
                if(isPanic(pairNames[i],SpikeTimeFrame,SpikePIPS)) {
+                  if(!panicMessageFlags[i]) { 
+                     Print("Active Spike trading conditions detected on ", pairNames[i]); 
+                     panicMessageFlags[i] = true;
+                     }
                   appendTradesIfAppropriate(pairNames[i],SpikeMarginPIPs, spikeSpacing,SpikePIPS,SpikeTradeLots,MaximumNetPositionLots);
-               }
+               } else {
+                        panicMessageFlags[i] = false;
+                     }
          }
       }
   }

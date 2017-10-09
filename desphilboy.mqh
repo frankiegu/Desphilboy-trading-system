@@ -367,7 +367,7 @@ for(int i=0; i<OrdersTotal(); i++)
         {
           if ( StringFind(allowedPairs, OrderSymbol(), 0) == -1 ) {
                if( OrderType() != OP_SELL && OrderType() != OP_BUY )   {
-                Print( "Order ", OrderTicket(), " being deleted because ", OrderSymbol(), " not fond in ", allowedPairs); 
+                Print( "Order ", OrderTicket(), " being deleted because ", OrderSymbol(), " not found in ", allowedPairs); 
                 result=OrderDelete(OrderTicket());
                  }
             
@@ -384,12 +384,14 @@ double  pp=MarketInfo(OrderSymbol(), MODE_POINT);
 
 if( getUnsafeNetPosition(pairname) < netLotsAllowed ) {
    if( getPriceOfLowest(OP_BUYSTOP,pairname) > (Ask + spikePIPs * pp)) {
+      Print( "Creating Buy Stops on ", pairname);
       appendBuyStops(pairname, pointsMargin,spacings,spikeTradeLots);
    }
 }
 
 if( getUnsafeNetPosition(pairname) > (-1 * netLotsAllowed) ) {
    if( getPriceOfHighest(OP_SELLSTOP,pairname) < (Bid - spikePIPs * pp)) {
+       Print( "Creating Sell Stops on ", pairname);
       appendSellStops(pairname, pointsMargin,spacings,spikeTradeLots);
    }
 }
