@@ -10,12 +10,23 @@ extern bool   AllPositions  =True;
 extern int    TrailingStopVL = 380, TrailingStopL = 400, TrailingStopM = 420, TrailingStopS = 440, TrailingStopU = 460;            
 extern int    TrailingStepVL  =30, TrailingStepL  =30, TrailingStepM = 30, TrailingStepS = 20, TrailingStepU = 20;             
 extern FiboRetrace  RetraceFactorVL=MaxRetrace, RetraceFactorL=MaxRetrace, RetraceFactorM = HalfRetrace, RetraceFactorS = LowRetrace, RetraceFactorU = MinRetrace;
-extern LifeTimes TimeFrameVL=EightHours, TimeFrameL=FourHours, TimeFrameM=TwoHours, TimeFrameS=Hour, TimeFrameU=HalfHour;
+extern LifeTimes TimeFrameVL=SixteenHours, TimeFrameL=EightHours, TimeFrameM=FourHours, TimeFrameS=TwoHours, TimeFrameU=Hour;
 extern bool ContinueLifeTimeAfterFirstSL=True;
 extern ENUM_TIMEFRAMES PanicTimeFrame = PERIOD_M1;
 extern int PanicPIPS = 1500;
 extern int PanicStop = 30;
 extern FiboRetrace PanicRetrace = NoRetrace;
+extern bool ActiveSpikeTrading = false;
+extern ENUM_TIMEFRAMES SpikeTimeFrame = PERIOD_H1;
+extern int SpikePIPS = 1500;
+extern int SpikeMarginPIPs = 350;
+extern double SpikeTradeLots = 0.01;
+extern double MaximumNetPositionLots = 0.02;
+extern string AllowedPairNames = "USDJPY,GBPJPY,EURJPY,USDCAD,AUDUSD";
+extern bool AllowedPairNamesOnly = true;
+extern int TimerSeconds = 10;
+extern bool ActiveTrading = false;
+extern ENUM_TIMEFRAMES ActiveTradingTimeFrame = PERIOD_D1;
 
 int fillTrailingInfo( int& tinfo[][])
 {
@@ -38,7 +49,29 @@ int init()
   Print("Retraces(VL,L,M,S,U):", RetraceFactorVL, ",", RetraceFactorL, ",", RetraceFactorM, ",", RetraceFactorS, ",", RetraceFactorU);
   Print("LifeTimes(VL,L,M,S,U):", TimeFrameVL, ",", TimeFrameL, ",", TimeFrameM, ",", TimeFrameS, ",", TimeFrameU);
   fillTrailingInfo(TrailingInfo);
+  EventSetTimer(TimerSeconds); 
   return(0); 
+}
+
+void OnTimer() {
+if(AllowedPairNamesOnly) {
+   filterOutTradesNotIn(AllowedPairNames);
+}
+
+if(ActiveTrading) {
+         int spikeSpacing[7];
+         for( int i = 0; i < 7; ++i) spikeSpacing[i] = SpikeMarginPIPs;
+
+         string pairNames[100];
+         int numPairs= StringSplit(AllowedPairNames, ',', pairNames);
+         for( int i=0; i<numPairs; ++i) {
+               if(isPanic(pairNames[i],ActiveTradingTimeFrame ,SpikePIPS)) {
+                  appendTradesIfAppropriate(pairNames[i],SpikeMarginPIPs, spikeSpacing,SpikePIPS,SpikeTradeLots,MaximumNetPositionLots);
+               }
+         }
+      }
+
+return;
 }
 
 //+------------------------------------------------------------------+
@@ -60,6 +93,19 @@ int init()
            }
         }
      }
+     
+     if(ActiveSpikeTrading) {
+         int spikeSpacing[7];
+         for( int i = 0; i < 7; ++i) spikeSpacing[i] = SpikeMarginPIPs;
+
+         string pairNames[100];
+         int numPairs= StringSplit(AllowedPairNames, ',', pairNames);
+         for( int i=0; i<numPairs; ++i) {
+               if(isPanic(pairNames[i],SpikeTimeFrame,SpikePIPS)) {
+                  appendTradesIfAppropriate(pairNames[i],SpikeMarginPIPs, spikeSpacing,SpikePIPS,SpikeTradeLots,MaximumNetPositionLots);
+               }
+         }
+      }
   }
   
    
