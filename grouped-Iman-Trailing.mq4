@@ -27,9 +27,12 @@ extern bool AllowedPairNamesOnly = true;
 extern int TimerSeconds = 10;
 extern bool ActiveTrading = false;
 extern ENUM_TIMEFRAMES ActiveTradingTimeFrame = PERIOD_D1;
+extern bool ShowLoopingSpeed = false;
 
 bool     activeMessageFlags[100];
 bool     panicMessageFlags[100];
+
+int loopCounter=0;
 
          
 
@@ -92,6 +95,8 @@ if(ActiveTrading) {
          }
       }
 
+if (ShowLoopingSpeed) Print( "Looping Speed is:", (int) ((60 * loopCounter) / TimerSeconds), " per minute.");
+loopCounter = 0;
 return;
 }
 
@@ -133,6 +138,8 @@ return;
                      }
          }
       }
+      
+      loopCounter++;
   }
   
    
