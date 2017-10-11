@@ -377,19 +377,19 @@ for(int i=0; i<OrdersTotal(); i++)
  return result;    
 } 
 
-int appendTradesIfAppropriate(string pairname, int pointsMargin, int &spacings[], int spikePIPs, double spikeTradeLots, double maxLots) {
+int appendTradesIfAppropriate(string pairname, int pointsMargin, int &spacings[], int spikePIPs, double spikeTradeLots, double maxLots, double absMaxLots) {
 
 double  netLotsAllowed = maxLots; 
 double  pp=MarketInfo(OrderSymbol(), MODE_POINT);
 
-if( getUnsafeNetPosition(pairname) < netLotsAllowed ) {
+if( getUnsafeNetPosition(pairname) < netLotsAllowed && getUnsafeBuys(pairname) < absMaxLots) {
    if( getPriceOfLowest(OP_BUYSTOP,pairname) > (Ask + spikePIPs * pp)) {
       Print( "Creating Buy Stops on ", pairname);
       appendBuyStops(pairname, pointsMargin,spacings,spikeTradeLots);
    }
 }
 
-if( getUnsafeNetPosition(pairname) > (-1 * netLotsAllowed) ) {
+if( getUnsafeNetPosition(pairname) > (-1 * netLotsAllowed) && getUnsafeSells(pairname) < absMaxLots) {
    if( getPriceOfHighest(OP_SELLSTOP,pairname) < (Bid - spikePIPs * pp)) {
        Print( "Creating Sell Stops on ", pairname);
       appendSellStops(pairname, pointsMargin,spacings,spikeTradeLots);
@@ -417,6 +417,36 @@ for(int i=0; i<OrdersTotal(); i++)
 return balance;
 }
 
+
+double getUnsafeBuys(string symbol) {
+double balance=0;
+
+for(int i=0; i<OrdersTotal(); i++) 
+     {
+        if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) 
+        {
+          if ( OrderSymbol() == symbol ) {
+            if( OrderType() == OP_BUY && OrderStopLoss() < OrderOpenPrice())    balance = balance + OrderLots();
+           }
+        }
+     }
+return balance;
+}
+
+double getUnsafeSells(string symbol) {
+double balance=0;
+
+for(int i=0; i<OrdersTotal(); i++) 
+     {
+        if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) 
+        {
+          if ( OrderSymbol() == symbol ) {
+            if( OrderType() == OP_SELL && OrderStopLoss() > OrderOpenPrice())    balance = balance + OrderLots();
+           }
+        }
+     }
+return balance;
+}
 
 double getAppropriateLotSize() {
 return AccountEquity()/10000.0; 

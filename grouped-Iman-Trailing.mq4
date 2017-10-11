@@ -22,6 +22,7 @@ extern int SpikePIPS = 1500;
 extern int SpikeMarginPIPs = 350;
 extern double SpikeTradeLots = 0.01;
 extern double MaximumNetPositionLots = 0.02;
+extern double MaximumAbsolutePositionLots = 0.03;
 extern string AllowedPairNames = "USDJPY,GBPJPY,EURJPY,USDCAD,AUDUSD";
 extern bool AllowedPairNamesOnly = true;
 extern int TimerSeconds = 10;
@@ -88,7 +89,7 @@ if(ActiveTrading) {
                      Print("Active trading conditions detected on ", pairNames[i]);
                      activeMessageFlags[i] = true;
                   }
-                  appendTradesIfAppropriate(pairNames[i],SpikeMarginPIPs, spikeSpacing,SpikePIPS,SpikeTradeLots,MaximumNetPositionLots);
+                  appendTradesIfAppropriate(pairNames[i],SpikeMarginPIPs, spikeSpacing,SpikePIPS,SpikeTradeLots,MaximumNetPositionLots,MaximumAbsolutePositionLots);
                } else {
                         activeMessageFlags[i] = false;
                         }
@@ -132,7 +133,7 @@ return;
                      Print("Active Spike trading conditions detected on ", pairNames[i]); 
                      panicMessageFlags[i] = true;
                      }
-                  appendTradesIfAppropriate(pairNames[i],SpikeMarginPIPs, spikeSpacing,SpikePIPS,SpikeTradeLots,MaximumNetPositionLots);
+                  appendTradesIfAppropriate(pairNames[i],SpikeMarginPIPs, spikeSpacing,SpikePIPS,SpikeTradeLots,MaximumNetPositionLots,MaximumAbsolutePositionLots);
                } else {
                         panicMessageFlags[i] = false;
                      }
