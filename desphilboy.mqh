@@ -247,11 +247,12 @@ if( OrderStopLoss() != 0  && !lifePeriodEffectiveAlways ) {
    return trailingInfo[orderGroup][TrailingStop];
 }
  
-int minutesElapsed = getMinutesOld(OrderOpenTime());
-int lifeTimeInMinutes = trailingInfo[orderGroup][LifePeriod];
+double minutesElapsed = getMinutesOld(OrderOpenTime());
+double lifeTimeInMinutes = trailingInfo[orderGroup][LifePeriod];
 if ( lifeTimeInMinutes == 0 ) { lifeTimeInMinutes =30; } // prevent divide by zero
 double timesLifeTimeElapsed =  (minutesElapsed / lifeTimeInMinutes);
 int orderTrailingStop = (int) (trailingInfo[orderGroup][TrailingStop] / (1+timesLifeTimeElapsed));
+// Print("Factor is:", 1+ timesLifeTimeElapsed, ",Order Trailing Stop for ", tradeTicket, " is ", orderTrailingStop);
 return  orderTrailingStop;
 }
 
@@ -274,11 +275,12 @@ if( OrderStopLoss() != 0  && !lifePeriodEffectiveAlways ) {
    return Fibo[trailingInfo[orderGroup][Retrace]];
 }
  
-int minutesElapsed = getMinutesOld(OrderOpenTime());
-int lifeTimeInMinutes = trailingInfo[orderGroup][LifePeriod];
+double minutesElapsed = getMinutesOld(OrderOpenTime());
+double lifeTimeInMinutes = trailingInfo[orderGroup][LifePeriod];
 if ( lifeTimeInMinutes == 0 ) { lifeTimeInMinutes =30; } // prevent divide by zero
 double timesLifeTimeElapsed =  (minutesElapsed / lifeTimeInMinutes);
 double orderRetrace =  (Fibo[trailingInfo[orderGroup][Retrace]] / (1+timesLifeTimeElapsed));
+// Print("Factor is:", 1+ timesLifeTimeElapsed, ", Order retrace for ", tradeTicket, " is ", orderRetrace);
 return  orderRetrace;
 }
 
