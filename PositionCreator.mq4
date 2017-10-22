@@ -1,7 +1,7 @@
 // Desphilboy Position Creator
 #property copyright "Iman Dezfuly"
 #property link      "http://www.Iman.ir"
-#define version      "201709021"
+#define version      "201710021"
 
 #include "./desphilboy.mqh"
 
@@ -12,11 +12,11 @@ extern double  SellLots = 0.01;
 extern double  BuyStartingPrice = 0.0;
 extern double  SellStartingPrice = 0.0;
 
-extern int     PIPsToStartVL = 1200;
-extern int     PIPsToStartL = 950;
+extern int     PIPsToStartU = 1200;
+extern int     PIPsToStartS = 950;
 extern int     PIPsToStartM = 700;
-extern int     PIPsToStartS = 450;
-extern int     PIPsToStartU = 200;
+extern int     PIPsToStartL = 450;
+extern int     PIPsToStartVL = 200;
 
 extern int     VeryLongTermDistance = 1250;
 extern int     LongTermDistance = 1250;
@@ -33,15 +33,15 @@ extern int     UserGroupSpacing = 120;
 extern bool    CreateBuys = true;
 extern bool    CreateSells = true;
 
-extern int    UserGroupBuys = 3;
-extern int    ShortTermBuys = 3;
-extern int    MediumTermBuys = 3;
+extern int    UserGroupBuys = 2;
+extern int    ShortTermBuys = 2;
+extern int    MediumTermBuys = 2;
 extern int    LongTermBuys = 2;
-extern int    VeryLongTermBuys = 1;
+extern int    VeryLongTermBuys = 2;
 
-extern int    UserGroupSells = 3;
-extern int    ShortTermSells = 3;
-extern int    MediumTermSells = 3;
+extern int    UserGroupSells = 2;
+extern int    ShortTermSells = 2;
+extern int    MediumTermSells = 2;
 extern int    LongTermSells = 2;
 extern int    VeryLongTermSells = 2;
 
