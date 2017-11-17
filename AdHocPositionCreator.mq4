@@ -1,7 +1,7 @@
 // Desphilboy Position Creator
 #property copyright "Iman Dezfuly"
 #property link      "http://www.Iman.ir"
-#define version      "201710021"
+#define version      "201711101"
 
 #include "./desphilboy.mqh"
 
@@ -12,11 +12,11 @@ extern double  SellLots = 0.01;
 extern double  BuyStartingPrice = 0.0;
 extern double  SellStartingPrice = 0.0;
 
-extern string     PIPsToStartU = 1200;
-extern string     PIPsToStartS = 950;
-extern string     PIPsToStartM = 700;
-extern string     PIPsToStartL = 450;
-extern string     PIPsToStartVL = 200;
+extern string     PIPsToStartU = "100,300,700,1900,2500,2900";
+extern string     PIPsToStartS = "900,2700,1500";
+extern string     PIPsToStartM = "1300,2100";
+extern string     PIPsToStartL = "1100,1700";
+extern string     PIPsToStartVL = "500,2300";
 
 extern int     VeryLongTermSpacing = 190;
 extern int     LongTermSpacing = 180;
@@ -26,18 +26,6 @@ extern int     UserGroupSpacing = 120;
 
 extern bool    CreateBuys = true;
 extern bool    CreateSells = true;
-
-extern int    UserGroupBuys = 2;
-extern int    ShortTermBuys = 2;
-extern int    MediumTermBuys = 2;
-extern int    LongTermBuys = 2;
-extern int    VeryLongTermBuys = 2;
-
-extern int    UserGroupSells = 2;
-extern int    ShortTermSells = 2;
-extern int    MediumTermSells = 2;
-extern int    LongTermSells = 2;
-extern int    VeryLongTermSells = 2;
 
 extern bool PaintPositions = true;
 
@@ -68,8 +56,8 @@ extern int TradesExpireAfterHours = 0;
 
 static bool once = false;
 
-#define delaySecondsBeforeConfirm 5
-#define DELAY 500
+#define delaySecondsBeforeConfirm 8
+#define DELAY 600
 
 void init()
 {
@@ -170,17 +158,20 @@ int doPositions()
 int spacings[gid_Panic +1];
  spacings[gid_VeryLongTerm] =  VeryLongTermSpacing; spacings[gid_LongTerm] = LongTermSpacing; spacings[gid_MediumTerm] = MediumTermSpacing;
  spacings[gid_ShortTerm] = ShortTermSpacing; spacings[gid_UserGroup] = UserGroupSpacing;
+ string distances[100];
+ int numTrades= StringSplit(PIPsToStartVL, ',', distances);
    if ( CreateBuys ) {
-            for(int i=0; i< VeryLongTermBuys; ++i) {
+         numTrades= StringSplit(PIPsToStartVL, ',', distances);
+         for(int i=0; i< numTrades; ++i) {
                   createBuyStop(
                   Symbol(),
                    BuyStartingPrice,
-                   i,
-                   PIPsToStartVL,
+                   0,
+                   StrToInteger(distances[i]),
                    StopLossVeryLong,
                    TakeProfitVeryLong,
                    VeryLongTerm,
-                   VeryLongTermDistance,
+                   0,
                    BuyLots,
                    Slippage,
                    TradesExpireAfterHours,
@@ -188,147 +179,170 @@ int spacings[gid_Panic +1];
                    );
                    Sleep(DELAY);
                }
-               for(int i=0; i< LongTermBuys; ++i) {
+               
+         numTrades= StringSplit(PIPsToStartL, ',', distances);
+         for(int i=0; i< numTrades; ++i) {
                   createBuyStop(
                   Symbol(),
                    BuyStartingPrice,
-                   i,
-                   PIPsToStartL,
+                   0,
+                   StrToInteger(distances[i]),
                    StopLossLong,
                    TakeProfitLong,
                    LongTerm,
-                   LongTermDistance,
+                   0,
                    BuyLots,
                    Slippage,
                    TradesExpireAfterHours,
-                   spacings);
+                   spacings
+                   );
                    Sleep(DELAY);
                }
-               for(int i=0; i< MediumTermBuys; ++i) {
+               
+         numTrades= StringSplit(PIPsToStartM, ',', distances);
+         for(int i=0; i< numTrades; ++i) {
                   createBuyStop(
                   Symbol(),
                    BuyStartingPrice,
-                   i,
-                   PIPsToStartM,
+                   0,
+                   StrToInteger(distances[i]),
                    StopLossMedium,
                    TakeProfitMedium,
                    MediumTerm,
-                   MediumTermDistance,
+                   0,
                    BuyLots,
                    Slippage,
                    TradesExpireAfterHours,
-                   spacings);
+                   spacings
+                   );
                    Sleep(DELAY);
                }
-               for(int i=0; i< ShortTermBuys; ++i) {
+         
+         numTrades= StringSplit(PIPsToStartS, ',', distances);
+         for(int i=0; i< numTrades; ++i) {
                   createBuyStop(
                   Symbol(),
                    BuyStartingPrice,
-                   i,
-                   PIPsToStartS,
+                   0,
+                   StrToInteger(distances[i]),
                    StopLossShort,
                    TakeProfitShort,
                    ShortTerm,
-                   ShortTermDistance,
+                   0,
                    BuyLots,
                    Slippage,
                    TradesExpireAfterHours,
-                   spacings);
+                   spacings
+                   );
                    Sleep(DELAY);
                }
-               for(int i=0; i< UserGroupBuys; ++i) {
+               
+         numTrades= StringSplit(PIPsToStartU, ',', distances);
+         for(int i=0; i< numTrades; ++i) {
                   createBuyStop(
                   Symbol(),
                    BuyStartingPrice,
-                   i,
-                   PIPsToStartU,
+                   0,
+                   StrToInteger(distances[i]),
                    StopLossUser,
                    TakeProfitUser,
                    UserGroup,
-                   UserGroupDistance,
+                   0,
                    BuyLots,
                    Slippage,
                    TradesExpireAfterHours,
-                   spacings);
+                   spacings
+                   );
                    Sleep(DELAY);
                }
+              
        }
 
    if ( CreateSells ) {
-            for(int i=0; i< VeryLongTermSells; ++i) {
+   
+            numTrades= StringSplit(PIPsToStartVL, ',', distances);
+            for(int i=0; i< numTrades; ++i) {
                   createSellStop(
                   Symbol(),
                    SellStartingPrice,
-                   i,
-                   PIPsToStartVL,
+                   0,
+                   StrToInteger(distances[i]),
                    StopLossVeryLong,
                    TakeProfitVeryLong,
                    VeryLongTerm,
-                   VeryLongTermDistance,
+                   0,
                    SellLots,
                    Slippage,
                    TradesExpireAfterHours,
                    spacings);
                    Sleep(DELAY);
                }
-               for(int i=0; i< LongTermSells; ++i) {
+               
+            numTrades= StringSplit(PIPsToStartL, ',', distances);
+            for(int i=0; i< numTrades; ++i) {
                   createSellStop(
                   Symbol(),
-                  SellStartingPrice,
-                   i,
-                   PIPsToStartL,
+                   SellStartingPrice,
+                   0,
+                   StrToInteger(distances[i]),
                    StopLossLong,
                    TakeProfitLong,
                    LongTerm,
-                   LongTermDistance,
+                   0,
                    SellLots,
                    Slippage,
                    TradesExpireAfterHours,
                    spacings);
                    Sleep(DELAY);
                }
-               for(int i=0; i< MediumTermSells; ++i) {
+
+            numTrades= StringSplit(PIPsToStartM, ',', distances);
+            for(int i=0; i< numTrades; ++i) {
                   createSellStop(
                   Symbol(),
-                  SellStartingPrice,
-                   i,
-                   PIPsToStartM,
+                   SellStartingPrice,
+                   0,
+                   StrToInteger(distances[i]),
                    StopLossMedium,
                    TakeProfitMedium,
                    MediumTerm,
-                   MediumTermDistance,
+                   0,
                    SellLots,
                    Slippage,
                    TradesExpireAfterHours,
                    spacings);
                    Sleep(DELAY);
                }
-               for(int i=0; i< ShortTermSells; ++i) {
+               
+            numTrades= StringSplit(PIPsToStartS, ',', distances);
+            for(int i=0; i< numTrades; ++i) {
                   createSellStop(
                   Symbol(),
-                  SellStartingPrice,
-                   i,
-                   PIPsToStartS,
+                   SellStartingPrice,
+                   0,
+                   StrToInteger(distances[i]),
                    StopLossShort,
                    TakeProfitShort,
                    ShortTerm,
-                   ShortTermDistance,
+                   0,
                    SellLots,
                    Slippage,
                    TradesExpireAfterHours,
                    spacings);
                    Sleep(DELAY);
                }
-               for(int i=0; i< UserGroupSells; ++i) {
+               
+            numTrades= StringSplit(PIPsToStartU, ',', distances);
+            for(int i=0; i< numTrades; ++i) {
                   createSellStop(
                   Symbol(),
-                  SellStartingPrice,
-                   i,
-                   PIPsToStartU,
+                   SellStartingPrice,
+                   0,
+                   StrToInteger(distances[i]),
                    StopLossUser,
                    TakeProfitUser,
                    UserGroup,
-                   UserGroupDistance,
+                   0,
                    SellLots,
                    Slippage,
                    TradesExpireAfterHours,

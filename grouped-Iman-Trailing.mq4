@@ -2,12 +2,12 @@
 #property copyright "Iman Dezfuly"
 #property link      "http://www.Iman.ir"
 
-#define version      "201710171"
+#define version      "201711172"
 
 #include "./desphilboy.mqh"
 
 extern bool   AllPositions  =True;         
-extern int    TrailingStopVL = 380, TrailingStopL = 400, TrailingStopM = 420, TrailingStopS = 440, TrailingStopU = 460;            
+extern int    TrailingStopVL = 480, TrailingStopL = 500, TrailingStopM = 520, TrailingStopS = 540, TrailingStopU = 560;            
 extern int    TrailingStepVL  =30, TrailingStepL  =30, TrailingStepM = 30, TrailingStepS = 20, TrailingStepU = 20;             
 extern FiboRetrace  RetraceFactorVL=MaxRetrace, RetraceFactorL=MaxRetrace, RetraceFactorM = HalfRetrace, RetraceFactorS = LowRetrace, RetraceFactorU = MinRetrace;
 extern LifeTimes TimeFrameVL=SixteenHours, TimeFrameL=EightHours, TimeFrameM=FourHours, TimeFrameS=TwoHours, TimeFrameU=Hour;
@@ -15,14 +15,14 @@ extern bool ContinueLifeTimeAfterFirstSL=True;
 extern ENUM_TIMEFRAMES PanicTimeFrame = PERIOD_M1;
 extern int PanicPIPS = 1500;
 extern int PanicStop = 30;
-extern FiboRetrace PanicRetrace = NoRetrace;
+extern FiboRetrace PanicRetrace = PaniclyRetrace;
 extern bool ActiveSpikeTrading = false;
 extern ENUM_TIMEFRAMES SpikeTimeFrame = PERIOD_H1;
 extern int SpikePIPS = 1500;
-extern int SpikeMarginPIPs = 350;
+extern int SpikeMarginPIPs = 250;
 extern double SpikeTradeLots = 0.01;
-extern double MaximumNetPositionLots = 0.02;
-extern double MaximumAbsolutePositionLots = 0.03;
+extern double MaximumNetPositionLots = 0.03;
+extern double MaximumAbsolutePositionLots = 0.04;
 extern string AllowedPairNames = "USDJPY,GBPJPY,EURJPY,USDCAD,AUDUSD";
 extern bool AllowedPairNamesOnly = true;
 extern int TimerSeconds = 10;

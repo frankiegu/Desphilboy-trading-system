@@ -15,7 +15,7 @@
 #define     MAHMARAZA_RAHVARA_ID 1921              // He loved this number, was his magic number
 #define     GROUP_SHIFT_CONSTANT 10000
 
-// 3 default groups IDs long term, medium term and short term positions plus one custom group for user
+// 4 default groups IDs verylong, long term, medium term and short term positions plus one custom group for user
 #define     VERYLONGTERMGROUP 10000
 #define     LONGTERMGROUP     20000
 #define     MEDTERMGROUP      30000
@@ -28,7 +28,8 @@ enum SellTypes       { Sell, SellLimit, SellStop};
 enum TradeActs       { Initialize, Repair, Append, Terminate, NoAction };
 enum GroupIds        { gid_NoGroup=0, gid_VeryLongTerm=1, gid_LongTerm=2, gid_MediumTerm=3, gid_ShortTerm=4, gid_UserGroup=5, gid_Panic=6 };
 enum TrailingFields  { TrailingStop=0, Step=1, Retrace=2, LifePeriod=3 };
-enum LifeTimes       { NoLifeTime=0, FiveMinutes=5, TenMinutes=10, Quarter=15, HalfHour=30, Hour=60, TwoHours=120, FourHours=240, EightHours=480, SixteenHours=960, Day=1440, TwoDays=2880, SixtyFourHours=3840, ThreeDays=4320, FiveDays=7200 };
+enum LifeTimes       { NoLifeTime=0, FiveMinutes=5, TenMinutes=10, Quarter=15, HalfHour=30, Min45=45, Hour=60, Footbal=90, TwoHours=120,
+ ThreeHours=180, FourHours=240, SixHours=360, EightHours=480, TwelveHourse=720, SixteenHours=960, Day=1440, TwoDays=2880, SixtyFourHours=3840, ThreeDays=4320, FiveDays=7200 };
 
  
 
@@ -39,8 +40,8 @@ enum LifeTimes       { NoLifeTime=0, FiveMinutes=5, TenMinutes=10, Quarter=15, H
 #define     DAPositionCreator_ID          400000
 
 // fibonacci
-enum FiboRetrace {NoRetrace=0, MinRetrace, LowRetrace, HalfRetrace, MaxRetrace};
-double Fibo[]={0.000, 0.236, 0.382, 0.500, 0.618};
+enum FiboRetrace {NoRetrace=0, PaniclyRetrace=1, MinRetrace=2, LowRetrace=3, HalfRetrace=4, MaxRetrace=5};
+double Fibo[]={0.000, 0.08, 0.236, 0.382, 0.500, 0.618};
 
 static int TrailingInfo[gid_Panic +1][LifePeriod + 1]; 
 
