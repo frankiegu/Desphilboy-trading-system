@@ -19,8 +19,8 @@ extern int     PIPsFromBidToStartSellStops = 70;
 extern int     DistanceBetweenBuyStops = 70;
 extern int     DistanceBetweenSellStops = 70;
 
-extern Groups  BuyStopsGroup = UserGroup;
-extern Groups  SellStopsGroup = UserGroup;
+extern Groups  BuyStopsGroup = VeryShort;
+extern Groups  SellStopsGroup = VeryShort;
 
 
 extern int StopLossBuys = 0;
@@ -51,9 +51,9 @@ if ( CreatePositions ) { once = true; }
 //+------------------------------------------------------------------+
 //| expert start function                                            |
 //+------------------------------------------------------------------+
-void start() 
+void start()
 {
-  if(once) 
+  if(once)
    {
       doPositions();
       once = false;
@@ -61,16 +61,16 @@ void start()
          ExpertRemove();
       }
    }
-   
+
   return;
 }
-  
+
 
 int doPositions()
 {
-   
+
    double pip = MarketInfo(Symbol(), MODE_POINT);
-     
+
    for(int i=0; i< NumberOfBuyStops; ++i){
    int result = OrderSend(
    Symbol(),              // symbol
@@ -107,7 +107,7 @@ int doPositions()
       else{ Print( OrderType(), " Order ", OrderTicket(), " opened at", OrderOpenPrice());}
    }
 
-   return(0); 
+   return(0);
 }
 
 int createBuyStop( double price)
@@ -122,7 +122,7 @@ double takeProfit = price + TakeProfitBuys * pip;
 int ticket = OrderSend(
                         Symbol(),                   // symbol
                         OP_BUYSTOP,                 // operation
-                        BuyLots,                    // volume   
+                        BuyLots,                    // volume
                         price,                      // price
                         Slippage,                   // slippage
                         stopLoss,                  // stop loss
@@ -132,14 +132,14 @@ int ticket = OrderSend(
                         expiry,                       // pending order expiration
                         ColourBuys                    // color
    );
-   
+
 if( ticket == -1 ) {
    Print( "Order creation failed for BuyStop at:", price);
    }
    else {
-            Print("BuyStop created at ", price, " with ticket ", OrderTicket(), " Group ", getGroupName(OrderMagicNumber()));    
+            Print("BuyStop created at ", price, " with ticket ", OrderTicket(), " Group ", getGroupName(OrderMagicNumber()));
         }
-   
+
 return ticket;
 }
 
@@ -155,7 +155,7 @@ double takeProfit = TakeProfitBuys != 0 ? price - TakeProfitBuys * pip : 0;
 int ticket = OrderSend(
                         Symbol(),                   // symbol
                         OP_BUYSTOP,                 // operation
-                        BuyLots,                    // volume   
+                        BuyLots,                    // volume
                         price,                      // price
                         Slippage,                   // slippage
                         stopLoss,                  // stop loss
@@ -165,13 +165,13 @@ int ticket = OrderSend(
                         expiry,                       // pending order expiration
                         ColourBuys                    // color
    );
-   
+
 if( ticket == -1 ) {
    Print( "Order creation failed for BuyStop at:", price);
    }
    else {
-            Print("BuyStop created at ", price, " with ticket ", OrderTicket(), " Group ", getGroupName(OrderMagicNumber()));    
+            Print("BuyStop created at ", price, " with ticket ", OrderTicket(), " Group ", getGroupName(OrderMagicNumber()));
         }
-   
+
 return ticket;
-}  
+}

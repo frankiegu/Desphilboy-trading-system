@@ -12,7 +12,7 @@ extern double  SellLots = 0.01;
 extern double  BuyStartingPrice = 0.0;
 extern double  SellStartingPrice = 0.0;
 
-extern string     PIPsToStartU = "100,300,700,1900,2500,2900";
+extern string     PIPsToStartVS = "100,300,700,1900,2500,2900";
 extern string     PIPsToStartS = "900,2700,1500";
 extern string     PIPsToStartM = "1300,2100";
 extern string     PIPsToStartL = "1100,1700";
@@ -22,7 +22,7 @@ extern int     VeryLongTermSpacing = 190;
 extern int     LongTermSpacing = 180;
 extern int     MediumTermSpacing = 160;
 extern int     ShortTermSpacing = 140;
-extern int     UserGroupSpacing = 120;
+extern int     VeryShortSpacing = 120;
 
 extern bool    CreateBuys = true;
 extern bool    CreateSells = true;
@@ -33,7 +33,7 @@ extern color VeryLongTermColour = clrBlanchedAlmond;
 extern color LongTermColour = clrAqua;
 extern color MediumTermColour = clrGreen;
 extern color ShortTermColour = clrOrangeRed;
-extern color UserGroupColour = clrBlue;
+extern color VeryShortColour = clrBlue;
 
 extern int StopLossVeryLong = 0;
 extern int TakeProfitVeryLong = 0;
@@ -43,8 +43,8 @@ extern int StopLossMedium = 0;
 extern int TakeProfitMedium = 0;
 extern int StopLossShort = 0;
 extern int TakeProfitShort = 0;
-extern int StopLossUser = 0;
-extern int TakeProfitUser = 0;
+extern int StopLossVeryShort = 0;
+extern int TakeProfitVeryShort = 0;
 
 extern int Slippage = 50;
 
@@ -62,15 +62,15 @@ static bool once = false;
 void init()
 {
    Print("Desphilboy position creator ",version, " on ", Symbol());
-    
+
    if (PaintPositions) paintPositions();
-   
-   if ( Action != NoAction ) { 
-      EventSetTimer(delaySecondsBeforeConfirm); 
+
+   if ( Action != NoAction ) {
+      EventSetTimer(delaySecondsBeforeConfirm);
       }
-      
-      
-      
+
+
+
 
 return;
 }
@@ -92,7 +92,7 @@ void OnTimer() {
 //+------------------------------------------------------------------+
 //| expert start function                                            |
 //+------------------------------------------------------------------+
-void start() 
+void start()
 {
 
   if(once) {
@@ -106,7 +106,7 @@ void start()
                                                 doTerminate();
                                              }
         }
-            
+
       once = false;
       if (PaintPositions) {
             paintPositions();
@@ -123,7 +123,7 @@ doPositions();
 
 return 0;
 }
- 
+
 int doRepair() {
 clearPositions(false, Slippage, CreateBuys, CreateSells);
 Sleep(5 * DELAY);
@@ -133,7 +133,7 @@ doPositions();
 
 return 0;
 }
-                    
+
 int doAppend() {
 doPositions();
 
@@ -157,7 +157,7 @@ int doPositions()
 {
 int spacings[gid_Panic +1];
  spacings[gid_VeryLongTerm] =  VeryLongTermSpacing; spacings[gid_LongTerm] = LongTermSpacing; spacings[gid_MediumTerm] = MediumTermSpacing;
- spacings[gid_ShortTerm] = ShortTermSpacing; spacings[gid_UserGroup] = UserGroupSpacing;
+ spacings[gid_ShortTerm] = ShortTermSpacing; spacings[gid_VeryShort] = VeryShortSpacing;
  string distances[100];
  int numTrades= StringSplit(PIPsToStartVL, ',', distances);
    if ( CreateBuys ) {
@@ -179,7 +179,7 @@ int spacings[gid_Panic +1];
                    );
                    Sleep(DELAY);
                }
-               
+
          numTrades= StringSplit(PIPsToStartL, ',', distances);
          for(int i=0; i< numTrades; ++i) {
                   createBuyStop(
@@ -198,7 +198,7 @@ int spacings[gid_Panic +1];
                    );
                    Sleep(DELAY);
                }
-               
+
          numTrades= StringSplit(PIPsToStartM, ',', distances);
          for(int i=0; i< numTrades; ++i) {
                   createBuyStop(
@@ -217,7 +217,7 @@ int spacings[gid_Panic +1];
                    );
                    Sleep(DELAY);
                }
-         
+
          numTrades= StringSplit(PIPsToStartS, ',', distances);
          for(int i=0; i< numTrades; ++i) {
                   createBuyStop(
@@ -236,17 +236,17 @@ int spacings[gid_Panic +1];
                    );
                    Sleep(DELAY);
                }
-               
-         numTrades= StringSplit(PIPsToStartU, ',', distances);
+
+         numTrades= StringSplit(PIPsToStartVS, ',', distances);
          for(int i=0; i< numTrades; ++i) {
                   createBuyStop(
                   Symbol(),
                    BuyStartingPrice,
                    0,
                    StrToInteger(distances[i]),
-                   StopLossUser,
-                   TakeProfitUser,
-                   UserGroup,
+                   StopLossVeryShort,
+                   TakeProfitVeryShort,
+                   VeryShort,
                    0,
                    BuyLots,
                    Slippage,
@@ -255,11 +255,11 @@ int spacings[gid_Panic +1];
                    );
                    Sleep(DELAY);
                }
-              
+
        }
 
    if ( CreateSells ) {
-   
+
             numTrades= StringSplit(PIPsToStartVL, ',', distances);
             for(int i=0; i< numTrades; ++i) {
                   createSellStop(
@@ -277,7 +277,7 @@ int spacings[gid_Panic +1];
                    spacings);
                    Sleep(DELAY);
                }
-               
+
             numTrades= StringSplit(PIPsToStartL, ',', distances);
             for(int i=0; i< numTrades; ++i) {
                   createSellStop(
@@ -313,7 +313,7 @@ int spacings[gid_Panic +1];
                    spacings);
                    Sleep(DELAY);
                }
-               
+
             numTrades= StringSplit(PIPsToStartS, ',', distances);
             for(int i=0; i< numTrades; ++i) {
                   createSellStop(
@@ -331,17 +331,17 @@ int spacings[gid_Panic +1];
                    spacings);
                    Sleep(DELAY);
                }
-               
-            numTrades= StringSplit(PIPsToStartU, ',', distances);
+
+            numTrades= StringSplit(PIPsToStartVS, ',', distances);
             for(int i=0; i< numTrades; ++i) {
                   createSellStop(
                   Symbol(),
                    SellStartingPrice,
                    0,
                    StrToInteger(distances[i]),
-                   StopLossUser,
-                   TakeProfitUser,
-                   UserGroup,
+                   StopLossVeryShort,
+                   TakeProfitVeryShort,
+                   VeryShort,
                    0,
                    SellLots,
                    Slippage,
@@ -351,7 +351,7 @@ int spacings[gid_Panic +1];
                }
        }
 
-   return(0); 
+   return(0);
 }
 
 
@@ -362,7 +362,7 @@ int spacings[gid_Panic +1];
 int paintPositions()
 {
 
-color  colour; 
+color  colour;
 string name;
 string symbol;
 long chartId;
@@ -370,12 +370,12 @@ int subwindow = -1;
 datetime xdatetime;
 double yprice;
 int x;
-  
+
  x = 500;
    chartId = ChartID();
    symbol = Symbol();
    x = (int) (ChartWidthInPixels() * 0.9);
-   
+
    if(ChartXYToTimePrice(
    ChartID(),     // Chart ID
    x,            // The X coordinate on the chart
@@ -388,15 +388,15 @@ int x;
       Print( "colouring positions");
    }
    else return 0;
-   
+
   ObjectsDeleteAll(chartId,0, OBJ_ARROW);
-           
+
   for(int i=0; i<OrdersTotal(); i++) {
-          
+
       if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) {
          if(OrderSymbol() == symbol) {
-         
-             if(getGroup(OrderMagicNumber()) == UserGroup ) { colour = UserGroupColour; }
+
+             if(getGroup(OrderMagicNumber()) == VeryShort ) { colour = VeryShortColour; }
                else if(getGroup(OrderMagicNumber()) == ShortTerm ) { colour = ShortTermColour; }
                      else if(getGroup(OrderMagicNumber()) == MediumTerm ) { colour = MediumTermColour; }
                            else if(getGroup(OrderMagicNumber()) == LongTerm ) { colour = LongTermColour; }
@@ -407,21 +407,21 @@ int x;
             name = Symbol() + "-" + getGroupName(OrderMagicNumber()) + "-" + IntegerToString(i);
             bool bResult = ObjectCreate(
                               chartId
-                              , name 
-                              , OBJ_ARROW_BUY  
-                              , 0  
-                              , xdatetime  
+                              , name
+                              , OBJ_ARROW_BUY
+                              , 0
+                              , xdatetime
                               , OrderOpenPrice());
             if(!bResult){
                Print (" could not paint arrow for position", OrderTicket());
             } else {
                   ObjectSetInteger(chartId, name, OBJPROP_COLOR, colour);
-              }                                
+              }
            }
       }
    }
-      
-   return(0); 
+
+   return(0);
 }
 
 int ChartWidthInPixels(const long chart_ID=0)
@@ -439,41 +439,41 @@ int ChartWidthInPixels(const long chart_ID=0)
 //--- return the value of the chart property
    return((int)result);
   }
-  
-  
+
+
   int array_returning_function( int &intarray[])
   {
   intarray[0]=0;
   intarray[1]=1;
   return 2;
   }
- 
- 
- 
+
+
+
 int clearPositions( bool all=false, int slippage =35, bool buys = true, bool sells = true)
 {
 
 for(int i=0; i<OrdersTotal(); i++) {
-     
+
         if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) {
-        
+
            if ( OrderSymbol()==Symbol()) {
-                               
+
                if (all || OrderType() == OP_BUYSTOP || OrderType() == OP_SELLSTOP) {
                      int result = false;
                      if(OrderType() == OP_BUY && buys) {
                               result = OrderClose(OrderTicket(),OrderLots(),Bid,slippage);
-                              } 
+                              }
                      if(OrderType() == OP_SELL && sells) {
-                               result = OrderClose(OrderTicket(),OrderLots(),Ask,slippage);   
+                               result = OrderClose(OrderTicket(),OrderLots(),Ask,slippage);
                                }
-                     if((OrderType() == OP_SELLSTOP && sells )|| (OrderType() == OP_BUYSTOP && buys)) {          
+                     if((OrderType() == OP_SELLSTOP && sells )|| (OrderType() == OP_BUYSTOP && buys)) {
                                result = OrderDelete(OrderTicket());
                                        }
                      if( !result ) {
                         Print( "Order ", OrderTicket(), " delete failed.");
                        }
-                              
+
                }
             }
          }

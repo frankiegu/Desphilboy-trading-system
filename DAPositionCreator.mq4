@@ -31,10 +31,10 @@ extern color VeryLongTermColour = clrBlanchedAlmond;
 extern color LongTermColour = clrAqua;
 extern color MediumTermColour = clrGreen;
 extern color ShortTermColour = clrOrangeRed;
-extern color UserGroupColour = clrBlue;
+extern color VeryShortColour = clrBlue;
 extern bool CheckOnlySameGroupSpacing=true;
 extern bool SpaceExistingPositions = true;
-extern int UserGroupSpacing = 100;
+extern int VeryShortSpacing = 100;
 extern int ShortTermSpacing = 120;
 extern int MediumTermSpacing = 200;
 extern int LongTermSpacing = 300;
@@ -47,16 +47,16 @@ static bool once = false;
 void init()
 {
    Print("Desphilboy Advanced position creator ",version, " on ", Symbol());
-    
+
    if (PaintPositions) paintPositions();
-   
-   if ( CreatePositions ) { 
-      EventSetTimer(delaySecondsBeforeConfirm); 
+
+   if ( CreatePositions ) {
+      EventSetTimer(delaySecondsBeforeConfirm);
       CreatePositions = false;
    }
-   
-   
-   
+
+
+
 return;
 }
 
@@ -77,11 +77,11 @@ void OnTimer() {
 //+------------------------------------------------------------------+
 //| expert start function                                            |
 //+------------------------------------------------------------------+
-void start() 
+void start()
 {
 
-  if(once) 
-   {  
+  if(once)
+   {
       doPositions();
       once = false;
       if (PaintPositions) paintPositions();
@@ -92,16 +92,16 @@ void start()
 
 int doPositions()
 {
-   
+
    for(int i=0; i< NumberOfBuyStops; ++i){
       createBuyStop(i);
       }
 
    for(int j=0; j< NumberOfSellStops; ++j){
-       createSellStop(j);             
+       createSellStop(j);
    }
 
-   return(0); 
+   return(0);
 }
 
 
@@ -122,11 +122,11 @@ double takeProfit = TakeProfitBuys != 0 ? price + TakeProfitBuys * pip : 0;
 
    bool spaceAvailable = false;
    if(CheckOnlySameGroupSpacing){
-      spaceAvailable = checkSpaceForPosition(price,OP_BUYSTOP, BuyStopsGroup);   
+      spaceAvailable = checkSpaceForPosition(price,OP_BUYSTOP, BuyStopsGroup);
    } else {
       spaceAvailable = clearSpaceForPosition(price,OP_BUYSTOP, BuyStopsGroup);
    }
-   
+
    if( !spaceAvailable) {
       Print( "Space not available for SellStop at ", price, " with group ", getGroupName(createMagicNumber(DAPositionCreator_ID, BuyStopsGroup)));
    return -1;
@@ -136,7 +136,7 @@ double takeProfit = TakeProfitBuys != 0 ? price + TakeProfitBuys * pip : 0;
 int result = OrderSend(
                         Symbol(),                   // symbol
                         OP_BUYSTOP,                 // operation
-                        BuyLots,                    // volume   
+                        BuyLots,                    // volume
                         price,                      // price
                         Slippage,                   // slippage
                         stopLoss,                  // stop loss
@@ -146,13 +146,13 @@ int result = OrderSend(
                         expiry,                       // pending order expiration
                         ColourBuys                    // color
    );
-   
+
 if( result == -1 ) {
    Print( "Order ", index, " creation failed for BuyStop at:", price);
    }
    else {
             if(OrderSelect(result, SELECT_BY_TICKET))
-            Print("BuyStop ", index," created at ", price, " with ticket ", OrderTicket(), " Group ", getGroupName(OrderMagicNumber()));    
+            Print("BuyStop ", index," created at ", price, " with ticket ", OrderTicket(), " Group ", getGroupName(OrderMagicNumber()));
         }
 return result;
 }
@@ -172,13 +172,13 @@ double takeProfit = TakeProfitSells != 0 ? price - TakeProfitSells * pip : 0;
 
 
    bool spaceAvailable = false;
-   
+
    if(CheckOnlySameGroupSpacing){
-      spaceAvailable = checkSpaceForPosition(price,OP_SELLSTOP,SellStopsGroup);   
+      spaceAvailable = checkSpaceForPosition(price,OP_SELLSTOP,SellStopsGroup);
    } else {
       spaceAvailable = clearSpaceForPosition(price,OP_SELLSTOP,SellStopsGroup);
    }
-   
+
    if( !spaceAvailable) {
       Print( "Space not available for SellStop at ", price, " with group ", getGroupName(createMagicNumber(DAPositionCreator_ID, SellStopsGroup)));
    return -1;
@@ -187,7 +187,7 @@ double takeProfit = TakeProfitSells != 0 ? price - TakeProfitSells * pip : 0;
 int result = OrderSend(
                         Symbol(),                   // symbol
                         OP_SELLSTOP,                 // operation
-                        SellLots,                    // volume   
+                        SellLots,                    // volume
                         price,                      // price
                         Slippage,                   // slippage
                         stopLoss,                  // stop loss
@@ -197,22 +197,22 @@ int result = OrderSend(
                         expiry,                       // pending order expiration
                         ColourSells                    // color
    );
-   
+
 if( result == -1 ) {
    Print( "Order ", index, " creation failed for SellStop at:", price);
    }
    else {
             if(OrderSelect(result, SELECT_BY_TICKET))
-            Print("SellStop ", index, " created at ", price, " with ticket ", OrderTicket(), " Group ", getGroupName(OrderMagicNumber()));    
+            Print("SellStop ", index, " created at ", price, " with ticket ", OrderTicket(), " Group ", getGroupName(OrderMagicNumber()));
         }
 return result;
-}  
+}
 
 
 int paintPositions()
 {
 
-color  colour; 
+color  colour;
 string name;
 string symbol;
 long chartId;
@@ -220,12 +220,12 @@ int subwindow = -1;
 datetime xdatetime;
 double yprice;
 int x;
-  
+
  x = 500;
    chartId = ChartID();
    symbol = Symbol();
    x = (int) (ChartWidthInPixels() * 0.9);
-   
+
    if(ChartXYToTimePrice(
    ChartID(),     // Chart ID
    x,            // The X coordinate on the chart
@@ -238,15 +238,15 @@ int x;
       Print( "colouring positions");
    }
    else return 0;
-   
+
   ObjectsDeleteAll(chartId,0, OBJ_ARROW);
-           
+
   for(int i=0; i<OrdersTotal(); i++) {
-          
+
       if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) {
          if(OrderSymbol() == symbol) {
-         
-             if(getGroup(OrderMagicNumber()) == UserGroup ) { colour = UserGroupColour; }
+
+             if(getGroup(OrderMagicNumber()) == VeryShort ) { colour = VeryShortColour; }
                else if(getGroup(OrderMagicNumber()) == ShortTerm ) { colour = ShortTermColour; }
                      else if(getGroup(OrderMagicNumber()) == MediumTerm ) { colour = MediumTermColour; }
                            else if(getGroup(OrderMagicNumber()) == LongTerm ) { colour = LongTermColour; }
@@ -257,21 +257,21 @@ int x;
             name = Symbol() + "-" + getGroupName(OrderMagicNumber()) + "-" + IntegerToString(i);
             bool bResult = ObjectCreate(
                               chartId
-                              , name 
-                              , OBJ_ARROW_BUY  
-                              , 0  
-                              , xdatetime  
+                              , name
+                              , OBJ_ARROW_BUY
+                              , 0
+                              , xdatetime
                               , OrderOpenPrice());
             if(!bResult){
                Print (" could not paint arrow for position", OrderTicket());
             } else {
                   ObjectSetInteger(chartId, name, OBJPROP_COLOR, colour);
-              }                                
+              }
            }
       }
    }
-      
-   return(0); 
+
+   return(0);
 }
 
 int ChartWidthInPixels(const long chart_ID=0)
@@ -289,32 +289,32 @@ int ChartWidthInPixels(const long chart_ID=0)
 //--- return the value of the chart property
    return((int)result);
   }
-  
-  
+
+
   int array_returning_function( int &intarray[])
   {
   intarray[0]=0;
   intarray[1]=1;
   return 2;
   }
- 
- 
+
+
  bool clearSpaceForPosition(double price, int operation, int group)
  {
    int positions[1000];
-   
+
    if( VeryLongTermSpacing != 0  && group == VeryLongTerm)
    {
       int c = getPositionsInRange(Symbol(), operation, price, VeryLongTermSpacing, positions,SpaceExistingPositions, VeryLongTerm);
       if ( c > 0)  { return false; }
-         
+
    }
-   
+
    if( LongTermSpacing != 0 && group <= LongTerm )
    {
       int c = getPositionsInRange(Symbol(), operation, price, LongTermSpacing, positions,SpaceExistingPositions, LongTerm);
       for( int i =0; i< c; ++i)
-      {  
+      {
        if(OrderSelect(positions[i], SELECT_BY_TICKET) ){
             if( OrderType()==OP_BUY || OrderType() == OP_SELL || group == LongTerm ){
                return false;
@@ -326,12 +326,12 @@ int ChartWidthInPixels(const long chart_ID=0)
          }
       }
    }
-   
+
    if( MediumTermSpacing != 0 && group <= MediumTerm )
    {
       int c = getPositionsInRange(Symbol(), operation, price, MediumTermSpacing, positions,SpaceExistingPositions, MediumTerm);
       for( int i =0; i< c; ++i)
-      {  
+      {
        if(OrderSelect(positions[i], SELECT_BY_TICKET) ){
             if( OrderType()==OP_BUY || OrderType() == OP_SELL || group == MediumTerm ){
                return false;
@@ -343,12 +343,12 @@ int ChartWidthInPixels(const long chart_ID=0)
          }
       }
    }
-   
+
    if( ShortTermSpacing != 0 && group <= ShortTerm )
    {
       int c = getPositionsInRange(Symbol(), operation, price, ShortTermSpacing, positions,SpaceExistingPositions, ShortTerm);
       for( int i =0; i< c; ++i)
-      {  
+      {
        if(OrderSelect(positions[i], SELECT_BY_TICKET) ){
             if( OrderType()==OP_BUY || OrderType() == OP_SELL || group == ShortTerm ){
                return false;
@@ -360,14 +360,14 @@ int ChartWidthInPixels(const long chart_ID=0)
          }
       }
    }
-   
-   if( UserGroupSpacing != 0 )
+
+   if( VeryShortSpacing != 0 )
    {
-      int c = getPositionsInRange(Symbol(), operation, price, UserGroupSpacing, positions,SpaceExistingPositions, UserGroup);
+      int c = getPositionsInRange(Symbol(), operation, price, VeryShortSpacing, positions,SpaceExistingPositions, VeryShort);
       for( int i =0; i< c; ++i)
-      {  
+      {
        if(OrderSelect(positions[i], SELECT_BY_TICKET) ){
-            if( OrderType()==OP_BUY || OrderType() == OP_SELL || group == UserGroup ){
+            if( OrderType()==OP_BUY || OrderType() == OP_SELL || group == VeryShort ){
                return false;
           }
           else {
@@ -377,45 +377,45 @@ int ChartWidthInPixels(const long chart_ID=0)
          }
       }
    }
-        
-   return true; 
- } 
- 
+
+   return true;
+ }
+
  bool checkSpaceForPosition(double price, int operation, int group)
  {
    int positions[1000];
-   
+
    if( VeryLongTermSpacing != 0  && group == VeryLongTerm)
    {
       int c = getPositionsInRangeSameGroup(Symbol(), operation, price, VeryLongTermSpacing, positions,SpaceExistingPositions, VeryLongTerm);
       if ( c > 0)  { return false; }
-         
+
    }
-   
+
    if( LongTermSpacing != 0  && group == LongTerm)
    {
       int c = getPositionsInRangeSameGroup(Symbol(), operation, price, LongTermSpacing, positions,SpaceExistingPositions, LongTerm);
       if ( c > 0)  { return false; }
-         
+
    }
-   
+
    if( MediumTermSpacing != 0 && group == MediumTerm )
    {
       int c = getPositionsInRangeSameGroup(Symbol(), operation, price, MediumTermSpacing, positions,SpaceExistingPositions, MediumTerm);
       if ( c > 0)  { return false; }
    }
-   
+
    if( ShortTermSpacing != 0 && group == ShortTerm )
    {
       int c = getPositionsInRangeSameGroup(Symbol(), operation, price, ShortTermSpacing, positions,SpaceExistingPositions, ShortTerm);
        if ( c > 0)  { return false; }
    }
-   
-   if( UserGroupSpacing != 0  && group == UserGroup )
+
+   if( VeryShortSpacing != 0  && group == VeryShort )
    {
-      int c = getPositionsInRangeSameGroup(Symbol(), operation, price, UserGroupSpacing, positions,SpaceExistingPositions, UserGroup);
+      int c = getPositionsInRangeSameGroup(Symbol(), operation, price, VeryShortSpacing, positions,SpaceExistingPositions, VeryShort);
       if ( c > 0)  { return false; }
    }
-        
-   return true; 
- } 
+
+   return true;
+ }

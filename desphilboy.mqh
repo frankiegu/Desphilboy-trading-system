@@ -1,4 +1,4 @@
-//version  20170301
+//version  20171101
 // heaer file for desphilboy
 //+------------------------------------------------------------------+
 //|                                                   desphilboy.mqh |
@@ -20,18 +20,18 @@
 #define     LONGTERMGROUP     20000
 #define     MEDTERMGROUP      30000
 #define     SHORTTERMGROUP    40000
-#define     USERGROUP         50000
+#define     VERYSHORT         50000
 
-enum Groups          { NoGroup=0, VeryLongTerm=VERYLONGTERMGROUP, LongTerm=LONGTERMGROUP, MediumTerm=MEDTERMGROUP, ShortTerm=SHORTTERMGROUP, UserGroup=USERGROUP };
+enum Groups          { NoGroup=0, VeryLongTerm=VERYLONGTERMGROUP, LongTerm=LONGTERMGROUP, MediumTerm=MEDTERMGROUP, ShortTerm=SHORTTERMGROUP, VeryShort=VERYSHORT };
 enum BuyTypes        { Buy, BuyLimit, BuyStop};
-enum SellTypes       { Sell, SellLimit, SellStop}; 
+enum SellTypes       { Sell, SellLimit, SellStop};
 enum TradeActs       { Initialize, Repair, Append, Terminate, NoAction };
-enum GroupIds        { gid_NoGroup=0, gid_VeryLongTerm=1, gid_LongTerm=2, gid_MediumTerm=3, gid_ShortTerm=4, gid_UserGroup=5, gid_Panic=6 };
+enum GroupIds        { gid_NoGroup=0, gid_VeryLongTerm=1, gid_LongTerm=2, gid_MediumTerm=3, gid_ShortTerm=4, gid_VeryShort=5, gid_Panic=6 };
 enum TrailingFields  { TrailingStop=0, Step=1, Retrace=2, LifePeriod=3 };
 enum LifeTimes       { NoLifeTime=0, FiveMinutes=5, TenMinutes=10, Quarter=15, HalfHour=30, Min45=45, Hour=60, Footbal=90, TwoHours=120,
- ThreeHours=180, FourHours=240, SixHours=360, EightHours=480, TwelveHourse=720, SixteenHours=960, Day=1440, TwoDays=2880, SixtyFourHours=3840, ThreeDays=4320, FiveDays=7200 };
+ ThreeHours=180, FourHours=240, SixHours=360, EightHours=480, TwelveHours=720, SixteenHours=960, Day=1440, TwoDays=2880, SixtyFourHours=3840, ThreeDays=4320, FiveDays=7200 };
 
- 
+
 
 // EA signature on the position
 #define     ImanTrailing_ID               100000
@@ -43,7 +43,7 @@ enum LifeTimes       { NoLifeTime=0, FiveMinutes=5, TenMinutes=10, Quarter=15, H
 enum FiboRetrace {NoRetrace=0, PaniclyRetrace=1, MinRetrace=2, LowRetrace=3, HalfRetrace=4, MaxRetrace=5};
 double Fibo[]={0.000, 0.08, 0.236, 0.382, 0.500, 0.618};
 
-static int TrailingInfo[gid_Panic +1][LifePeriod + 1]; 
+static int TrailingInfo[gid_Panic +1][LifePeriod + 1];
 
 // common functions to work with Magic Numbers
 int createMagicNumber( int eaId, int groupId)
@@ -91,10 +91,10 @@ bool isMediumTerm( int magicNumber)
 }
 
 
-bool isUserGroup( int magicNumber)
+bool isVeryShort( int magicNumber)
 {
    if(isDesphilboy(magicNumber)){
-      return ((magicNumber % 100000)- MAHMARAZA_RAHVARA_ID) == USERGROUP;
+      return ((magicNumber % 100000)- MAHMARAZA_RAHVARA_ID) == VERYSHORT;
    }
    return false;
 }
@@ -111,7 +111,7 @@ string getGroupName( int magicNumber)
          else if(isLongTerm(magicNumber)) { return "LongTerm"; }
                else if(isMediumTerm(magicNumber)){return "MediumTerm";}
                      else if(isShortTerm(magicNumber)){return "ShortTerm";}
-                           else if(isUserGroup(magicNumber)){return "UserGroup";}
+                           else if(isVeryShort(magicNumber)){return "VeryShort";}
                                     else if(isManual(magicNumber)){ return "Manual";}
                                              else return "Unknown";
 
@@ -124,7 +124,7 @@ if(isVeryLongTerm(magicNumber)) { return VeryLongTerm; }
       else if(isLongTerm(magicNumber)) { return LongTerm; }
             else if(isMediumTerm(magicNumber)){return MediumTerm;}
                   else if(isShortTerm(magicNumber)){return ShortTerm;}
-                        else if(isUserGroup(magicNumber)){return UserGroup;}
+                        else if(isVeryShort(magicNumber)){return VeryShort;}
 return NoGroup;
 }
 
@@ -134,7 +134,7 @@ if(isVeryLongTerm(magicNumber)) { return gid_VeryLongTerm; }
       else if(isLongTerm(magicNumber)) { return gid_LongTerm; }
             else if(isMediumTerm(magicNumber)){return gid_MediumTerm;}
                   else if(isShortTerm(magicNumber)){return gid_ShortTerm;}
-                        else if(isUserGroup(magicNumber)){return gid_UserGroup;}
+                        else if(isVeryShort(magicNumber)){return gid_VeryShort;}
 return gid_NoGroup;
 }
 
@@ -142,36 +142,36 @@ return gid_NoGroup;
 int getPositionsInterval(string symbol, int operation, double rangeLow, double rangeHi,int &results[])
 {
    int resultCounter = 0;
-   
-     for(int i=0; i<OrdersTotal(); i++) 
+
+     for(int i=0; i<OrdersTotal(); i++)
      {
-        if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) 
+        if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES))
         {
-           if (OrderSymbol()==symbol && OrderType()==operation && OrderOpenPrice() > rangeLow && OrderOpenPrice() < rangeHi) 
+           if (OrderSymbol()==symbol && OrderType()==operation && OrderOpenPrice() > rangeLow && OrderOpenPrice() < rangeHi)
            {
                results[resultCounter] = OrderTicket();
                resultCounter++;
            }
         }
      }
-     
+
      return resultCounter;
-} 
+}
 
 
 int getPositionsInterval(string symbol, int operation, double rangeLow, double rangeHi,int &results[], bool spaceOpenPositions=false, int group = NoGroup)
 {
    int resultCounter = 0;
-   
-   int openPosType = (operation == OP_SELLSTOP || operation == OP_SELLLIMIT ) ? OP_SELL : OP_BUY ; 
-   
-     for(int i=0; i<OrdersTotal(); i++) 
+
+   int openPosType = (operation == OP_SELLSTOP || operation == OP_SELLLIMIT ) ? OP_SELL : OP_BUY ;
+
+     for(int i=0; i<OrdersTotal(); i++)
      {
-        if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) 
+        if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES))
         {
-           if (OrderSymbol()==symbol 
-           && (OrderType()==operation || (OrderType() == openPosType && spaceOpenPositions)) 
-           && OrderOpenPrice() > rangeLow 
+           if (OrderSymbol()==symbol
+           && (OrderType()==operation || (OrderType() == openPosType && spaceOpenPositions))
+           && OrderOpenPrice() > rangeLow
            && OrderOpenPrice() < rangeHi
            && ( group == NoGroup || getGroup(OrderMagicNumber()) <= group || (OrderType() == openPosType && spaceOpenPositions)))
            {
@@ -180,9 +180,9 @@ int getPositionsInterval(string symbol, int operation, double rangeLow, double r
            }
         }
      }
-     
+
      return resultCounter;
-} 
+}
 
 
 int getPositionsInRange(string symbol, int operation, double center, int PIPsMargin, int &results[], bool spaceOpenPositions=false, int group = NoGroup)
@@ -197,16 +197,16 @@ int getPositionsInRange(string symbol, int operation, double center, int PIPsMar
 int getPositionsIntervalSameGroup(string symbol, int operation, double rangeLow, double rangeHi,int &results[], bool spaceOpenPositions=false, int group = NoGroup)
 {
    int resultCounter = 0;
-   
-   int openPosType = (operation == OP_SELLSTOP || operation == OP_SELLLIMIT ) ? OP_SELL : OP_BUY ; 
-   
-     for(int i=0; i<OrdersTotal(); i++) 
+
+   int openPosType = (operation == OP_SELLSTOP || operation == OP_SELLLIMIT ) ? OP_SELL : OP_BUY ;
+
+     for(int i=0; i<OrdersTotal(); i++)
      {
-        if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) 
+        if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES))
         {
-           if (OrderSymbol()==symbol 
-           && (OrderType()==operation || (OrderType() == openPosType && spaceOpenPositions)) 
-           && OrderOpenPrice() > rangeLow 
+           if (OrderSymbol()==symbol
+           && (OrderType()==operation || (OrderType() == openPosType && spaceOpenPositions))
+           && OrderOpenPrice() > rangeLow
            && OrderOpenPrice() < rangeHi
            && ( group == NoGroup || getGroup(OrderMagicNumber()) == group ))
            {
@@ -215,9 +215,9 @@ int getPositionsIntervalSameGroup(string symbol, int operation, double rangeLow,
            }
         }
      }
-     
+
      return resultCounter;
-} 
+}
 
 
 int getPositionsInRangeSameGroup(string symbol, int operation, double center, int PIPsMargin, int &results[], bool spaceOpenPositions=false, int group = NoGroup)
@@ -239,15 +239,15 @@ if( !OrderSelect(tradeTicket, SELECT_BY_TICKET, MODE_TRADES) ) { return trailing
 GroupIds orderGroup = getGroupId(OrderMagicNumber());
 
 if( trailingInfo[orderGroup][LifePeriod] == PERIOD_CURRENT) {
-   
+
    return trailingInfo[orderGroup][TrailingStop];
 }
 
 if( OrderStopLoss() != 0  && !lifePeriodEffectiveAlways ) {
-   
+
    return trailingInfo[orderGroup][TrailingStop];
 }
- 
+
 double minutesElapsed = getMinutesOld(OrderOpenTime());
 double lifeTimeInMinutes = trailingInfo[orderGroup][LifePeriod];
 if ( lifeTimeInMinutes == 0 ) { lifeTimeInMinutes =30; } // prevent divide by zero
@@ -267,15 +267,15 @@ if( !OrderSelect(tradeTicket, SELECT_BY_TICKET, MODE_TRADES) ) { return Fibo[tra
 GroupIds orderGroup = getGroupId(OrderMagicNumber());
 
 if( trailingInfo[orderGroup][LifePeriod] == PERIOD_CURRENT) {
-   
+
    return Fibo[trailingInfo[orderGroup][Retrace]];
 }
 
 if( OrderStopLoss() != 0  && !lifePeriodEffectiveAlways ) {
-   
+
    return Fibo[trailingInfo[orderGroup][Retrace]];
 }
- 
+
 double minutesElapsed = getMinutesOld(OrderOpenTime());
 double lifeTimeInMinutes = trailingInfo[orderGroup][LifePeriod];
 if ( lifeTimeInMinutes == 0 ) { lifeTimeInMinutes =30; } // prevent divide by zero
@@ -299,9 +299,9 @@ double getNetPosition(string symbol) {
 
 double balance=0;
 
-for(int i=0; i<OrdersTotal(); i++) 
+for(int i=0; i<OrdersTotal(); i++)
      {
-        if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) 
+        if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES))
         {
           if ( OrderSymbol() == symbol ) {
             if( OrderType() == OP_BUY)    balance = balance + OrderLots();
@@ -316,35 +316,35 @@ return balance;
 double getPriceOfHighest(int operation, string symbol) {
 double price=0;
 
-for(int i=0; i<OrdersTotal(); i++) 
+for(int i=0; i<OrdersTotal(); i++)
      {
-        if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) 
+        if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES))
         {
           if ( OrderSymbol() == symbol ) {
                if( OrderType() == operation)    price = MathMax(price,OrderOpenPrice());
-            
+
            }
         }
      }
 return price;
-} 
+}
 
 
 double getPriceOfLowest(int operation, string symbol) {
 double price=99990;
 
-for(int i=0; i<OrdersTotal(); i++) 
+for(int i=0; i<OrdersTotal(); i++)
      {
-        if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) 
+        if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES))
         {
           if ( OrderSymbol() == symbol ) {
                if( OrderType() == operation)    price = MathMin(price,OrderOpenPrice());
-            
+
            }
         }
      }
 return price;
-} 
+}
 
 
 bool isPanic(string symbol, ENUM_TIMEFRAMES timeframe, int panicPIPS) {
@@ -354,7 +354,7 @@ double maxPrice = MathMax( iHigh(symbol, timeframe, 0) ,iHigh(symbol, timeframe,
 
 double span = maxPrice - minPrice;
 
-double symbolPoint = MarketInfo(symbol, MODE_POINT); 
+double symbolPoint = MarketInfo(symbol, MODE_POINT);
 
 int spanPips = (int) (span/symbolPoint);
 
@@ -364,25 +364,25 @@ return (spanPips >= panicPIPS);
 
 int filterOutTradesNotIn(string allowedPairs) {
 int result=0;
-for(int i=0; i<OrdersTotal(); i++) 
+for(int i=0; i<OrdersTotal(); i++)
      {
-        if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) 
+        if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES))
         {
           if ( StringFind(allowedPairs, OrderSymbol(), 0) == -1 ) {
                if( OrderType() != OP_SELL && OrderType() != OP_BUY )   {
-                Print( "Order ", OrderTicket(), " being deleted because ", OrderSymbol(), " not found in ", allowedPairs); 
+                Print( "Order ", OrderTicket(), " being deleted because ", OrderSymbol(), " not found in ", allowedPairs);
                 result=OrderDelete(OrderTicket());
                  }
-            
+
            }
         }
      }
- return result;    
-} 
+ return result;
+}
 
 int appendTradesIfAppropriate(string pairname, int pointsMargin, int &spacings[], int spikePIPs, double spikeTradeLots, double maxLots, double absMaxLots) {
 
-double  netLotsAllowed = maxLots; 
+double  netLotsAllowed = maxLots;
 double  pp=MarketInfo(OrderSymbol(), MODE_POINT);
 
 if( getUnsafeNetPosition(pairname) < netLotsAllowed && getUnsafeBuys(pairname) < absMaxLots) {
@@ -407,9 +407,9 @@ double getUnsafeNetPosition(string symbol) {
 
 double balance=0;
 
-for(int i=0; i<OrdersTotal(); i++) 
+for(int i=0; i<OrdersTotal(); i++)
      {
-        if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) 
+        if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES))
         {
           if ( OrderSymbol() == symbol ) {
             if( OrderType() == OP_BUY && OrderStopLoss() < OrderOpenPrice())    balance = balance + OrderLots();
@@ -424,9 +424,9 @@ return balance;
 double getUnsafeBuys(string symbol) {
 double balance=0;
 
-for(int i=0; i<OrdersTotal(); i++) 
+for(int i=0; i<OrdersTotal(); i++)
      {
-        if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) 
+        if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES))
         {
           if ( OrderSymbol() == symbol ) {
             if( OrderType() == OP_BUY && OrderStopLoss() < OrderOpenPrice())    balance = balance + OrderLots();
@@ -439,9 +439,9 @@ return balance;
 double getUnsafeSells(string symbol) {
 double balance=0;
 
-for(int i=0; i<OrdersTotal(); i++) 
+for(int i=0; i<OrdersTotal(); i++)
      {
-        if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) 
+        if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES))
         {
           if ( OrderSymbol() == symbol ) {
             if( OrderType() == OP_SELL && OrderStopLoss() > OrderOpenPrice())    balance = balance + OrderLots();
@@ -452,7 +452,7 @@ return balance;
 }
 
 double getAppropriateLotSize() {
-return AccountEquity()/10000.0; 
+return AccountEquity()/10000.0;
 }
 
 
@@ -460,11 +460,11 @@ return AccountEquity()/10000.0;
 int appendBuyStops( string pairName, int margin, int& spacings[], double lots){
 double point = MarketInfo(pairName, MODE_POINT);
 
-createBuyStop(pairName, Ask, 0,(int) (margin * 1.5), 0, 0,UserGroup, margin, lots,100,0,spacings);
+createBuyStop(pairName, Ask, 0,(int) (margin * 1.5), 0, 0,VeryShort, margin, lots,100,0,spacings);
 createBuyStop(pairName, Ask, 1,(int) (margin * 1.5), 0, 0,ShortTerm, margin, lots,100,0,spacings);
 createBuyStop(pairName, Ask, 2,(int) (margin * 1.5), 0, 0,MediumTerm, margin, lots,100,0,spacings);
 createBuyStop(pairName, Ask, 3,(int) (margin * 1.5), 0, 0,ShortTerm, margin, lots,100,0,spacings);
-createBuyStop(pairName, Ask, 4,(int) (margin * 1.5), 0, 0,UserGroup, margin, lots,100,0,spacings);
+createBuyStop(pairName, Ask, 4,(int) (margin * 1.5), 0, 0,VeryShort, margin, lots,100,0,spacings);
 return 0;
 }
 
@@ -474,19 +474,19 @@ int appendSellStops( string pairName, int margin, int& spacings[], double lots){
 double point = MarketInfo(pairName, MODE_POINT);
 
 
-createSellStop(pairName, Bid, 0,(int) (margin * 1.5), 0, 0,UserGroup, margin, lots,100,0,spacings);
+createSellStop(pairName, Bid, 0,(int) (margin * 1.5), 0, 0,VeryShort, margin, lots,100,0,spacings);
 createSellStop(pairName, Bid, 1,(int) (margin * 1.5), 0, 0,ShortTerm, margin, lots,100,0,spacings);
 createSellStop(pairName, Bid, 2,(int) (margin * 1.5), 0, 0,MediumTerm, margin, lots,100,0,spacings);
 createSellStop(pairName, Bid, 3,(int) (margin * 1.5), 0, 0,ShortTerm, margin, lots,100,0,spacings);
-createSellStop(pairName, Bid, 4,(int) (margin * 1.5), 0, 0,UserGroup, margin, lots,100,0,spacings);
+createSellStop(pairName, Bid, 4,(int) (margin * 1.5), 0, 0,VeryShort, margin, lots,100,0,spacings);
 return 0;
 }
 
 
-int createBuyStop( 
+int createBuyStop(
                      string symbol,
                      double startingPrice,
-                    int index, 
+                    int index,
                     int PIPsToStart,
                     int StopLossBuys,
                     int TakeProfitBuys,
@@ -508,8 +508,8 @@ double takeProfit = TakeProfitBuys != 0 ? price + TakeProfitBuys * pip : 0;
 
    bool spaceAvailable = false;
    spaceAvailable = clearSpaceForPosition(price,OP_BUYSTOP, BuyStopsGroup,spacings);
-   
-   
+
+
    if( !spaceAvailable) {
       Print( "Space not available for SellStop at ", price, " with group ", getGroupName(createMagicNumber(DAPositionCreator_ID, BuyStopsGroup)));
    return -1;
@@ -519,7 +519,7 @@ double takeProfit = TakeProfitBuys != 0 ? price + TakeProfitBuys * pip : 0;
 int result = OrderSend(
                         symbol,                   // symbol
                         OP_BUYSTOP,                 // operation
-                        buyLots,                    // volume   
+                        buyLots,                    // volume
                         price,                      // price
                         slippage,                   // slippage
                         stopLoss,                  // stop loss
@@ -529,13 +529,13 @@ int result = OrderSend(
                         expiry,                       // pending order expiration
                         clrNONE                    // color
    );
-   
+
 if( result == -1 ) {
    Print( "Order ", index, " creation failed for BuyStop at:", price);
    }
    else {
             if(OrderSelect(result, SELECT_BY_TICKET))
-            Print("BuyStop ", index," created at ", price, " with ticket ", OrderTicket(), " Group ", getGroupName(OrderMagicNumber()));    
+            Print("BuyStop ", index," created at ", price, " with ticket ", OrderTicket(), " Group ", getGroupName(OrderMagicNumber()));
         }
 return result;
 }
@@ -543,10 +543,10 @@ return result;
 
 
 
-int createSellStop( 
+int createSellStop(
                      string symbol,
                      double startingPrice,
-                    int index, 
+                    int index,
                     int PIPsToStart,
                     int StopLossSells,
                     int TakeProfitSells,
@@ -567,10 +567,10 @@ double takeProfit = TakeProfitSells != 0 ? price - TakeProfitSells * pip : 0;
 
 
    bool spaceAvailable = false;
-   
+
    spaceAvailable = clearSpaceForPosition(price,OP_SELLSTOP,SellStopsGroup,spacings);
-   
-   
+
+
    if( !spaceAvailable) {
       Print( "Space not available for SellStop at ", price, " with group ", getGroupName(createMagicNumber(DAPositionCreator_ID, SellStopsGroup)));
    return -1;
@@ -579,7 +579,7 @@ double takeProfit = TakeProfitSells != 0 ? price - TakeProfitSells * pip : 0;
 int result = OrderSend(
                         symbol,                   // symbol
                         OP_SELLSTOP,                 // operation
-                        sellLots,                    // volume   
+                        sellLots,                    // volume
                         price,                      // price
                         slippage,                   // slippage
                         stopLoss,                  // stop loss
@@ -589,39 +589,39 @@ int result = OrderSend(
                         expiry,                       // pending order expiration
                         clrNONE                    // color
    );
-   
+
 if( result == -1 ) {
    Print( "Order ", index, " creation failed for SellStop at:", price);
    }
    else {
             if(OrderSelect(result, SELECT_BY_TICKET))
-            Print("SellStop ", index, " created at ", price, " with ticket ", OrderTicket(), " Group ", getGroupName(OrderMagicNumber()));    
+            Print("SellStop ", index, " created at ", price, " with ticket ", OrderTicket(), " Group ", getGroupName(OrderMagicNumber()));
         }
 return result;
-}  
+}
 
 bool clearSpaceForPosition(double price, int operation, int group, int& Spacings[])
  {
    int positions[1000];
-   
+
    int veryLongTermSpacing = Spacings[gid_VeryLongTerm];
    int longTermSpacing = Spacings[gid_LongTerm];
    int mediumTermSpacing = Spacings[gid_MediumTerm];
    int shortTermSpacing = Spacings[gid_ShortTerm];
-   int userGroupSpacing = Spacings[gid_UserGroup];
-   
+   int veryShortSpacing = Spacings[gid_VeryShort];
+
    if( veryLongTermSpacing != 0  && group == VeryLongTerm)
    {
       int c = getPositionsInRange(Symbol(), operation, price, veryLongTermSpacing, positions,true, VeryLongTerm);
       if ( c > 0)  { return false; }
-         
+
    }
-   
+
    if( longTermSpacing != 0 && group <= LongTerm )
    {
       int c = getPositionsInRange(Symbol(), operation, price, longTermSpacing, positions,true, LongTerm);
       for( int i =0; i< c; ++i)
-      {  
+      {
        if(OrderSelect(positions[i], SELECT_BY_TICKET) ){
             if( OrderType()==OP_BUY || OrderType() == OP_SELL || group == LongTerm ){
                return false;
@@ -633,12 +633,12 @@ bool clearSpaceForPosition(double price, int operation, int group, int& Spacings
          }
       }
    }
-   
+
    if( mediumTermSpacing != 0 && group <= MediumTerm )
    {
       int c = getPositionsInRange(Symbol(), operation, price, mediumTermSpacing, positions,true, MediumTerm);
       for( int i =0; i< c; ++i)
-      {  
+      {
        if(OrderSelect(positions[i], SELECT_BY_TICKET) ){
             if( OrderType()==OP_BUY || OrderType() == OP_SELL || group == MediumTerm ){
                return false;
@@ -650,12 +650,12 @@ bool clearSpaceForPosition(double price, int operation, int group, int& Spacings
          }
       }
    }
-   
+
    if( shortTermSpacing != 0 && group <= ShortTerm )
    {
       int c = getPositionsInRange(Symbol(), operation, price, shortTermSpacing, positions,true, ShortTerm);
       for( int i =0; i< c; ++i)
-      {  
+      {
        if(OrderSelect(positions[i], SELECT_BY_TICKET) ){
             if( OrderType()==OP_BUY || OrderType() == OP_SELL || group == ShortTerm ){
                return false;
@@ -667,14 +667,14 @@ bool clearSpaceForPosition(double price, int operation, int group, int& Spacings
          }
       }
    }
-   
-   if( userGroupSpacing != 0 )
+
+   if( veryShortSpacing != 0 )
    {
-      int c = getPositionsInRange(Symbol(), operation, price, userGroupSpacing, positions,true, UserGroup);
+      int c = getPositionsInRange(Symbol(), operation, price, veryShortSpacing, positions,true, VeryShort);
       for( int i =0; i< c; ++i)
-      {  
+      {
        if(OrderSelect(positions[i], SELECT_BY_TICKET) ){
-            if( OrderType()==OP_BUY || OrderType() == OP_SELL || group == UserGroup ){
+            if( OrderType()==OP_BUY || OrderType() == OP_SELL || group == VeryShort ){
                return false;
           }
           else {
@@ -684,9 +684,9 @@ bool clearSpaceForPosition(double price, int operation, int group, int& Spacings
          }
       }
    }
-        
-   return true; 
- } 
- 
- 
- 
+
+   return true;
+ }
+
+
+
