@@ -20,15 +20,15 @@
 #define     LONGTERMGROUP     20000
 #define     MEDTERMGROUP      30000
 #define     SHORTTERMGROUP    40000
-#define     VERYSHORT         50000
+#define     VERYSHORTGROUP    50000
 
-enum Groups          { NoGroup=0, VeryLongTerm=VERYLONGTERMGROUP, LongTerm=LONGTERMGROUP, MediumTerm=MEDTERMGROUP, ShortTerm=SHORTTERMGROUP, VeryShort=VERYSHORT };
+enum Groups          { NoGroup=0, VeryLongTerm=VERYLONGTERMGROUP, LongTerm=LONGTERMGROUP, MediumTerm=MEDTERMGROUP, ShortTerm=SHORTTERMGROUP, VeryShortTerm=VERYSHORTGROUP };
 enum BuyTypes        { Buy, BuyLimit, BuyStop};
 enum SellTypes       { Sell, SellLimit, SellStop};
 enum TradeActs       { Initialize, Repair, Append, Terminate, NoAction };
-enum GroupIds        { gid_NoGroup=0, gid_VeryLongTerm=1, gid_LongTerm=2, gid_MediumTerm=3, gid_ShortTerm=4, gid_VeryShort=5, gid_Panic=6 };
+enum GroupIds        { gid_NoGroup=0, gid_VeryLongTerm=1, gid_LongTerm=2, gid_MediumTerm=3, gid_ShortTerm=4, gid_VeryShortTerm=5, gid_Panic=6 };
 enum TrailingFields  { TrailingStop=0, Step=1, Retrace=2, LifePeriod=3 };
-enum LifeTimes       { NoLifeTime=0, FiveMinutes=5, TenMinutes=10, Quarter=15, HalfHour=30, Min45=45, Hour=60, Footbal=90, TwoHours=120,
+enum LifeTimes       { NoLifeTime=0, FiveMinutes=5, TenMinutes=10, Quarter=15, HalfHour=30, Min45=45, OneHour=60, Footbal=90, TwoHours=120,
  ThreeHours=180, FourHours=240, SixHours=360, EightHours=480, TwelveHours=720, SixteenHours=960, Day=1440, TwoDays=2880, SixtyFourHours=3840, ThreeDays=4320, FiveDays=7200 };
 
 
@@ -41,7 +41,7 @@ enum LifeTimes       { NoLifeTime=0, FiveMinutes=5, TenMinutes=10, Quarter=15, H
 
 // fibonacci
 enum FiboRetrace {NoRetrace=0, PaniclyRetrace=1, MinRetrace=2, LowRetrace=3, HalfRetrace=4, MaxRetrace=5};
-double Fibo[]={0.000, 0.08, 0.236, 0.382, 0.500, 0.618};
+double Fibo[]={0.000, 0.05, 0.236, 0.382, 0.500, 0.618};
 
 static int TrailingInfo[gid_Panic +1][LifePeriod + 1];
 
@@ -94,7 +94,7 @@ bool isMediumTerm( int magicNumber)
 bool isVeryShort( int magicNumber)
 {
    if(isDesphilboy(magicNumber)){
-      return ((magicNumber % 100000)- MAHMARAZA_RAHVARA_ID) == VERYSHORT;
+      return ((magicNumber % 100000)- MAHMARAZA_RAHVARA_ID) == VERYSHORTGROUP;
    }
    return false;
 }
@@ -111,7 +111,7 @@ string getGroupName( int magicNumber)
          else if(isLongTerm(magicNumber)) { return "LongTerm"; }
                else if(isMediumTerm(magicNumber)){return "MediumTerm";}
                      else if(isShortTerm(magicNumber)){return "ShortTerm";}
-                           else if(isVeryShort(magicNumber)){return "VeryShort";}
+                           else if(isVeryShort(magicNumber)){return "VeryShortTerm";}
                                     else if(isManual(magicNumber)){ return "Manual";}
                                              else return "Unknown";
 
@@ -124,7 +124,7 @@ if(isVeryLongTerm(magicNumber)) { return VeryLongTerm; }
       else if(isLongTerm(magicNumber)) { return LongTerm; }
             else if(isMediumTerm(magicNumber)){return MediumTerm;}
                   else if(isShortTerm(magicNumber)){return ShortTerm;}
-                        else if(isVeryShort(magicNumber)){return VeryShort;}
+                        else if(isVeryShort(magicNumber)){return VeryShortTerm;}
 return NoGroup;
 }
 
@@ -134,7 +134,7 @@ if(isVeryLongTerm(magicNumber)) { return gid_VeryLongTerm; }
       else if(isLongTerm(magicNumber)) { return gid_LongTerm; }
             else if(isMediumTerm(magicNumber)){return gid_MediumTerm;}
                   else if(isShortTerm(magicNumber)){return gid_ShortTerm;}
-                        else if(isVeryShort(magicNumber)){return gid_VeryShort;}
+                        else if(isVeryShort(magicNumber)){return gid_VeryShortTerm;}
 return gid_NoGroup;
 }
 
@@ -460,11 +460,11 @@ return AccountEquity()/10000.0;
 int appendBuyStops( string pairName, int margin, int& spacings[], double lots){
 double point = MarketInfo(pairName, MODE_POINT);
 
-createBuyStop(pairName, Ask, 0,(int) (margin * 1.5), 0, 0,VeryShort, margin, lots,100,0,spacings);
+createBuyStop(pairName, Ask, 0,(int) (margin * 1.5), 0, 0,VeryShortTerm, margin, lots,100,0,spacings);
 createBuyStop(pairName, Ask, 1,(int) (margin * 1.5), 0, 0,ShortTerm, margin, lots,100,0,spacings);
 createBuyStop(pairName, Ask, 2,(int) (margin * 1.5), 0, 0,MediumTerm, margin, lots,100,0,spacings);
 createBuyStop(pairName, Ask, 3,(int) (margin * 1.5), 0, 0,ShortTerm, margin, lots,100,0,spacings);
-createBuyStop(pairName, Ask, 4,(int) (margin * 1.5), 0, 0,VeryShort, margin, lots,100,0,spacings);
+createBuyStop(pairName, Ask, 4,(int) (margin * 1.5), 0, 0,VeryShortTerm, margin, lots,100,0,spacings);
 return 0;
 }
 
@@ -474,11 +474,11 @@ int appendSellStops( string pairName, int margin, int& spacings[], double lots){
 double point = MarketInfo(pairName, MODE_POINT);
 
 
-createSellStop(pairName, Bid, 0,(int) (margin * 1.5), 0, 0,VeryShort, margin, lots,100,0,spacings);
+createSellStop(pairName, Bid, 0,(int) (margin * 1.5), 0, 0,VeryShortTerm, margin, lots,100,0,spacings);
 createSellStop(pairName, Bid, 1,(int) (margin * 1.5), 0, 0,ShortTerm, margin, lots,100,0,spacings);
 createSellStop(pairName, Bid, 2,(int) (margin * 1.5), 0, 0,MediumTerm, margin, lots,100,0,spacings);
 createSellStop(pairName, Bid, 3,(int) (margin * 1.5), 0, 0,ShortTerm, margin, lots,100,0,spacings);
-createSellStop(pairName, Bid, 4,(int) (margin * 1.5), 0, 0,VeryShort, margin, lots,100,0,spacings);
+createSellStop(pairName, Bid, 4,(int) (margin * 1.5), 0, 0,VeryShortTerm, margin, lots,100,0,spacings);
 return 0;
 }
 
@@ -608,7 +608,7 @@ bool clearSpaceForPosition(double price, int operation, int group, int& Spacings
    int longTermSpacing = Spacings[gid_LongTerm];
    int mediumTermSpacing = Spacings[gid_MediumTerm];
    int shortTermSpacing = Spacings[gid_ShortTerm];
-   int veryShortSpacing = Spacings[gid_VeryShort];
+   int veryShortSpacing = Spacings[gid_VeryShortTerm];
 
    if( veryLongTermSpacing != 0  && group == VeryLongTerm)
    {
@@ -670,11 +670,11 @@ bool clearSpaceForPosition(double price, int operation, int group, int& Spacings
 
    if( veryShortSpacing != 0 )
    {
-      int c = getPositionsInRange(Symbol(), operation, price, veryShortSpacing, positions,true, VeryShort);
+      int c = getPositionsInRange(Symbol(), operation, price, veryShortSpacing, positions,true, VeryShortTerm);
       for( int i =0; i< c; ++i)
       {
        if(OrderSelect(positions[i], SELECT_BY_TICKET) ){
-            if( OrderType()==OP_BUY || OrderType() == OP_SELL || group == VeryShort ){
+            if( OrderType()==OP_BUY || OrderType() == OP_SELL || group == VeryShortTerm ){
                return false;
           }
           else {

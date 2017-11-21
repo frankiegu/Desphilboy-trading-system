@@ -7,10 +7,10 @@
 #include "./desphilboy.mqh"
 
 extern bool   AllPositions  =True;
-extern int    TrailingStopVL = 480, TrailingStopL = 500, TrailingStopM = 520, TrailingStopS = 540, TrailingStopVS = 560;
-extern int    TrailingStepVL  =30, TrailingStepL  =30, TrailingStepM = 30, TrailingStepS = 20, TrailingStepVS = 20;
+extern int    TrailingStopVL = 500, TrailingStopL = 550, TrailingStopM = 600, TrailingStopS = 650, TrailingStopVS = 700;
+extern int    TrailingStepVL  =30, TrailingStepL  =30, TrailingStepM = 30, TrailingStepS = 30, TrailingStepVS = 30;
 extern FiboRetrace  RetraceFactorVL=MaxRetrace, RetraceFactorL=MaxRetrace, RetraceFactorM = HalfRetrace, RetraceFactorS = LowRetrace, RetraceFactorVS = MinRetrace;
-extern LifeTimes TimeFrameVL=SixteenHours, TimeFrameL=EightHours, TimeFrameM=FourHours, TimeFrameS=TwoHours, TimeFrameVS=Hour;
+extern LifeTimes TimeFrameVL=SixteenHours, TimeFrameL=EightHours, TimeFrameM=FourHours, TimeFrameS=TwoHours, TimeFrameVS=OneHour;
 extern bool ContinueLifeTimeAfterFirstSL=True;
 extern ENUM_TIMEFRAMES PanicTimeFrame = PERIOD_M1;
 extern int PanicPIPS = 1500;
@@ -44,7 +44,7 @@ tinfo[gid_VeryLongTerm][TrailingStop]=TrailingStopVL; tinfo[gid_VeryLongTerm][St
 tinfo[gid_LongTerm][TrailingStop]=TrailingStopL; tinfo[gid_LongTerm][Step]=TrailingStepL; tinfo[gid_LongTerm][Retrace]=RetraceFactorL; tinfo[gid_LongTerm][LifePeriod]=TimeFrameL;
 tinfo[gid_MediumTerm][TrailingStop]=TrailingStopM; tinfo[gid_MediumTerm][Step]=TrailingStepM; tinfo[gid_MediumTerm][Retrace]=RetraceFactorM; tinfo[gid_MediumTerm][LifePeriod]=TimeFrameM;
 tinfo[gid_ShortTerm][TrailingStop]=TrailingStopS; tinfo[gid_ShortTerm][Step]=TrailingStepS; tinfo[gid_ShortTerm][Retrace]=RetraceFactorS; tinfo[gid_ShortTerm][LifePeriod]=TimeFrameS;
-tinfo[gid_VeryShort][TrailingStop]=TrailingStopVS; tinfo[gid_VeryShort][Step]=TrailingStepVS; tinfo[gid_VeryShort][Retrace]=RetraceFactorVS; tinfo[gid_VeryShort][LifePeriod]=TimeFrameVS;
+tinfo[gid_VeryShortTerm][TrailingStop]=TrailingStopVS; tinfo[gid_VeryShortTerm][Step]=TrailingStepVS; tinfo[gid_VeryShortTerm][Retrace]=RetraceFactorVS; tinfo[gid_VeryShortTerm][LifePeriod]=TimeFrameVS;
 tinfo[gid_Panic][TrailingStop]=PanicStop; tinfo[gid_Panic][Step]=TrailingStepVS; tinfo[gid_Panic][Retrace]=PanicRetrace; tinfo[gid_Panic][LifePeriod]=PanicTimeFrame;
 return 0;
 }
