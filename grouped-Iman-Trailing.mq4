@@ -7,22 +7,22 @@
 #include "./desphilboy.mqh"
 
 extern bool   AllPositions  =True;
-extern int    TrailingStopVL = 500, TrailingStopL = 550, TrailingStopM = 600, TrailingStopS = 650, TrailingStopVS = 700;
+extern int    TrailingStopVL = 1000, TrailingStopL = 700, TrailingStopM = 600, TrailingStopS = 500, TrailingStopVS = 400;
 extern int    TrailingStepVL  =30, TrailingStepL  =30, TrailingStepM = 30, TrailingStepS = 30, TrailingStepVS = 30;
-extern FiboRetrace  RetraceFactorVL=MaxRetrace, RetraceFactorL=MaxRetrace, RetraceFactorM = HalfRetrace, RetraceFactorS = LowRetrace, RetraceFactorVS = MinRetrace;
-extern LifeTimes TimeFrameVL=SixteenHours, TimeFrameL=EightHours, TimeFrameM=FourHours, TimeFrameS=TwoHours, TimeFrameVS=OneHour;
+extern FiboRetrace  RetraceFactorVL=WholeRetrace, RetraceFactorL=MaxRetrace, RetraceFactorM = HalfRetrace, RetraceFactorS = LowRetrace, RetraceFactorVS = MinRetrace;
+extern LifeTimes TimeFrameVL=FiveDays, TimeFrameL=FourHours, TimeFrameM=ThreeHours, TimeFrameS=TwoHours, TimeFrameVS=OneHour;
 extern bool ContinueLifeTimeAfterFirstSL=True;
-extern ENUM_TIMEFRAMES PanicTimeFrame = PERIOD_M1;
+extern ENUM_TIMEFRAMES PanicTimeFrame = PERIOD_M5;
 extern int PanicPIPS = 1500;
-extern int PanicStop = 30;
+extern int PanicStop = 50;
 extern FiboRetrace PanicRetrace = PaniclyRetrace;
 extern bool ActiveSpikeTrading = false;
 extern ENUM_TIMEFRAMES SpikeTimeFrame = PERIOD_H1;
 extern int SpikePIPS = 1500;
 extern int SpikeMarginPIPs = 250;
 extern double SpikeTradeLots = 0.01;
-extern double MaximumNetPositionLots = 0.03;
-extern double MaximumAbsolutePositionLots = 0.04;
+extern int MaximumNetPositions = 3;
+extern int MaximumAbsolutePositions = 4;
 extern string AllowedPairNames = "USDJPY,GBPJPY,EURJPY,USDCAD,AUDUSD";
 extern bool AllowedPairNamesOnly = true;
 extern int TimerSeconds = 10;
@@ -89,7 +89,7 @@ if(ActiveTrading) {
                      Print("Active trading conditions detected on ", pairNames[i]);
                      activeMessageFlags[i] = true;
                   }
-                  appendTradesIfAppropriate(pairNames[i],SpikeMarginPIPs, spikeSpacing,SpikePIPS,SpikeTradeLots,MaximumNetPositionLots,MaximumAbsolutePositionLots);
+                  appendTradesIfAppropriate(pairNames[i],SpikeMarginPIPs, spikeSpacing,SpikePIPS,SpikeTradeLots,MaximumNetPositions * SpikeTradeLots,MaximumAbsolutePositions * SpikeTradeLots);
                } else {
                         activeMessageFlags[i] = false;
                         }
@@ -133,7 +133,7 @@ return;
                      Print("Active Spike trading conditions detected on ", pairNames[i]);
                      panicMessageFlags[i] = true;
                      }
-                  appendTradesIfAppropriate(pairNames[i],SpikeMarginPIPs, spikeSpacing,SpikePIPS,SpikeTradeLots,MaximumNetPositionLots,MaximumAbsolutePositionLots);
+                  appendTradesIfAppropriate(pairNames[i],SpikeMarginPIPs, spikeSpacing,SpikePIPS,SpikeTradeLots,MaximumNetPositions * SpikeTradeLots,MaximumAbsolutePositions * SpikeTradeLots);
                } else {
                         panicMessageFlags[i] = false;
                      }

@@ -12,17 +12,17 @@ extern double  SellLots = 0.01;
 extern double  BuyStartingPrice = 0.0;
 extern double  SellStartingPrice = 0.0;
 
-extern string     PIPsToStartVS = "100,300,700,1900,2500,2900";
-extern string     PIPsToStartS = "900,2700,1500";
-extern string     PIPsToStartM = "1300,2100";
-extern string     PIPsToStartL = "1100,1700";
-extern string     PIPsToStartVL = "500,2300";
+extern string     PIPsToStartVS  = "100,400,2800,1100,1900,2500,3500,3900";
+extern string     PIPsToStartS   = "900,1300,1700,2300,3300,3700";
+extern string     PIPsToStartM   = "700,1500,2100,3100";
+extern string     PIPsToStartL   = "500,2900";
+extern string     PIPsToStartVL  = "300,2700";
 
-extern int     VeryLongTermSpacing = 190;
-extern int     LongTermSpacing = 180;
-extern int     MediumTermSpacing = 160;
-extern int     ShortTermSpacing = 140;
-extern int     VeryShortSpacing = 120;
+extern int     VeryLongTermSpacing = 80;
+extern int     LongTermSpacing = 80;
+extern int     MediumTermSpacing = 80;
+extern int     ShortTermSpacing = 80;
+extern int     VeryShortSpacing = 80;
 
 extern bool    CreateBuys = true;
 extern bool    CreateSells = true;
