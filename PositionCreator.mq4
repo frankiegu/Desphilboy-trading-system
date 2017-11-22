@@ -12,11 +12,11 @@ extern double  SellLots = 0.01;
 extern double  BuyStartingPrice = 0.0;
 extern double  SellStartingPrice = 0.0;
 
-extern string     PIPsToStartVS = "100,300,700,1900,2500,2900";
-extern string     PIPsToStartS = "900,2700,1500";
-extern string     PIPsToStartM = "1300,2100";
-extern string     PIPsToStartL = "1100,1700";
-extern string     PIPsToStartVL = "500,2300";
+extern string     PIPsToStartVS  = "100,1100,1900,2500,3500";
+extern string     PIPsToStartS   = "900,1700,2300,3300";
+extern string     PIPsToStartM   = "700,1500,2100,3100";
+extern string     PIPsToStartL   = "500,1300,2900";
+extern string     PIPsToStartVL  = "300,2700";
 
 extern int     VeryLongTermSpacing = 190;
 extern int     LongTermSpacing = 180;

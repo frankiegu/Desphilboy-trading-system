@@ -16,20 +16,20 @@
 #define     GROUP_SHIFT_CONSTANT 10000
 
 // 4 default groups IDs verylong, long term, medium term and short term positions plus one custom group for user
-#define     VERYLONGTERMGROUP 10000
-#define     LONGTERMGROUP     20000
-#define     MEDTERMGROUP      30000
-#define     SHORTTERMGROUP    40000
-#define     VERYSHORTGROUP    50000
+#define     VERYLONGTERMGROUP     10000
+#define     LONGTERMGROUP         20000
+#define     MEDTERMGROUP          30000
+#define     SHORTTERMGROUP        40000
+#define     VERYSHORTTERMGROUP    50000
 
-enum Groups          { NoGroup=0, VeryLongTerm=VERYLONGTERMGROUP, LongTerm=LONGTERMGROUP, MediumTerm=MEDTERMGROUP, ShortTerm=SHORTTERMGROUP, VeryShortTerm=VERYSHORTGROUP };
+enum Groups          { NoGroup=0, VeryLongTerm=VERYLONGTERMGROUP, LongTerm=LONGTERMGROUP, MediumTerm=MEDTERMGROUP, ShortTerm=SHORTTERMGROUP, VeryShortTerm=VERYSHORTTERMGROUP };
 enum BuyTypes        { Buy, BuyLimit, BuyStop};
 enum SellTypes       { Sell, SellLimit, SellStop};
 enum TradeActs       { Initialize, Repair, Append, Terminate, NoAction };
 enum GroupIds        { gid_NoGroup=0, gid_VeryLongTerm=1, gid_LongTerm=2, gid_MediumTerm=3, gid_ShortTerm=4, gid_VeryShortTerm=5, gid_Panic=6 };
 enum TrailingFields  { TrailingStop=0, Step=1, Retrace=2, LifePeriod=3 };
 enum LifeTimes       { NoLifeTime=0, FiveMinutes=5, TenMinutes=10, Quarter=15, HalfHour=30, Min45=45, OneHour=60, Footbal=90, TwoHours=120,
- ThreeHours=180, FourHours=240, SixHours=360, EightHours=480, TwelveHours=720, SixteenHours=960, Day=1440, TwoDays=2880, SixtyFourHours=3840, ThreeDays=4320, FiveDays=7200 };
+ ThreeHours=180, FourHours=240, SixHours=360, EightHours=480, TwelveHours=720, SixteenHours=960, OneDay=1440, TwoDays=2880, SixtyFourHours=3840, ThreeDays=4320, FiveDays=7200 };
 
 
 
@@ -94,7 +94,7 @@ bool isMediumTerm( int magicNumber)
 bool isVeryShort( int magicNumber)
 {
    if(isDesphilboy(magicNumber)){
-      return ((magicNumber % 100000)- MAHMARAZA_RAHVARA_ID) == VERYSHORTGROUP;
+      return ((magicNumber % 100000)- MAHMARAZA_RAHVARA_ID) == VERYSHORTTERMGROUP;
    }
    return false;
 }

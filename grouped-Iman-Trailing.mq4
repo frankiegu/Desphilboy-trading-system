@@ -7,14 +7,14 @@
 #include "./desphilboy.mqh"
 
 extern bool   AllPositions  =True;
-extern int    TrailingStopVL = 500, TrailingStopL = 550, TrailingStopM = 600, TrailingStopS = 650, TrailingStopVS = 700;
+extern int    TrailingStopVL = 800, TrailingStopL = 700, TrailingStopM = 600, TrailingStopS = 500, TrailingStopVS = 400;
 extern int    TrailingStepVL  =30, TrailingStepL  =30, TrailingStepM = 30, TrailingStepS = 30, TrailingStepVS = 30;
 extern FiboRetrace  RetraceFactorVL=MaxRetrace, RetraceFactorL=MaxRetrace, RetraceFactorM = HalfRetrace, RetraceFactorS = LowRetrace, RetraceFactorVS = MinRetrace;
-extern LifeTimes TimeFrameVL=SixteenHours, TimeFrameL=EightHours, TimeFrameM=FourHours, TimeFrameS=TwoHours, TimeFrameVS=OneHour;
+extern LifeTimes TimeFrameVL=TwoDays, TimeFrameL=OneDay, TimeFrameM=TwelveHours, TimeFrameS=FourHours, TimeFrameVS=OneHour;
 extern bool ContinueLifeTimeAfterFirstSL=True;
-extern ENUM_TIMEFRAMES PanicTimeFrame = PERIOD_M1;
+extern ENUM_TIMEFRAMES PanicTimeFrame = PERIOD_M5;
 extern int PanicPIPS = 1500;
-extern int PanicStop = 30;
+extern int PanicStop = 50;
 extern FiboRetrace PanicRetrace = PaniclyRetrace;
 extern bool ActiveSpikeTrading = false;
 extern ENUM_TIMEFRAMES SpikeTimeFrame = PERIOD_H1;
