@@ -2,15 +2,22 @@
 #property copyright "Iman Dezfuly"
 #property link      "http://www.Iman.ir"
 
-#define version      "201711172"
+#define version      "20171201"
 
 #include "./desphilboy.mqh"
 
 extern bool   AllPositions  =True;
-extern int    TrailingStopVL = 1000, TrailingStopL = 700, TrailingStopM = 600, TrailingStopS = 500, TrailingStopVS = 400;
-extern int    TrailingStepVL  =30, TrailingStepL  =30, TrailingStepM = 30, TrailingStepS = 30, TrailingStepVS = 30;
-extern FiboRetrace  RetraceFactorVL=WholeRetrace, RetraceFactorL=MaxRetrace, RetraceFactorM = HalfRetrace, RetraceFactorS = LowRetrace, RetraceFactorVS = MinRetrace;
-extern LifeTimes TimeFrameVL=FiveDays, TimeFrameL=FourHours, TimeFrameM=ThreeHours, TimeFrameS=TwoHours, TimeFrameVS=OneHour;
+extern int    TrailingStopUL=1100,TrailingStopVL = 1000, TrailingStopL = 900, TrailingStopM = 800,
+ TrailingStopS = 700, TrailingStopVS = 600,TrailingStopUS = 500, TrailingStopI = 400;
+
+extern int    TrailingStepUL = 30, TrailingStepVL  =30, TrailingStepL  =30, TrailingStepM = 30,
+ TrailingStepS = 30, TrailingStepVS = 30, TrailingStepUS = 30, TrailingStepI = 30;
+ 
+extern FiboRetrace  RetraceFactorUL=WholeRetrace,RetraceFactorVL=WholeRetrace, RetraceFactorL=WholeRetrace, RetraceFactorM =AlmostWholeRetrace,
+ RetraceFactorS = MaxRetrace, RetraceFactorVS = HalfRetrace, RetraceFactorUS=LowRetrace, RetraceFactorI=MinRetrace;
+
+extern LifeTimes TimeFrameUL=FiveDays, TimeFrameVL=TwoDays, TimeFrameL=OneDay, TimeFrameM=EightHours,
+ TimeFrameS=FourHours, TimeFrameVS=TwoHours, TimeFrameUS=OneHour, TimeFrameI=HalfHour;
 extern bool ContinueLifeTimeAfterFirstSL=True;
 extern ENUM_TIMEFRAMES PanicTimeFrame = PERIOD_M5;
 extern int PanicPIPS = 1500;
@@ -40,11 +47,15 @@ int loopCounter=0;
 int fillTrailingInfo( int& tinfo[][])
 {
 tinfo[gid_NoGroup][0] = tinfo[gid_NoGroup][1] = tinfo[gid_NoGroup][2] = tinfo[gid_NoGroup][3] = 0;
+tinfo[gid_UltraLongTerm][TrailingStop]=TrailingStopUL; tinfo[gid_UltraLongTerm][Step]=TrailingStepUL; tinfo[gid_UltraLongTerm][Retrace]=RetraceFactorUL; tinfo[gid_UltraLongTerm][LifePeriod]=TimeFrameUL;
 tinfo[gid_VeryLongTerm][TrailingStop]=TrailingStopVL; tinfo[gid_VeryLongTerm][Step]=TrailingStepVL; tinfo[gid_VeryLongTerm][Retrace]=RetraceFactorVL; tinfo[gid_VeryLongTerm][LifePeriod]=TimeFrameVL;
 tinfo[gid_LongTerm][TrailingStop]=TrailingStopL; tinfo[gid_LongTerm][Step]=TrailingStepL; tinfo[gid_LongTerm][Retrace]=RetraceFactorL; tinfo[gid_LongTerm][LifePeriod]=TimeFrameL;
 tinfo[gid_MediumTerm][TrailingStop]=TrailingStopM; tinfo[gid_MediumTerm][Step]=TrailingStepM; tinfo[gid_MediumTerm][Retrace]=RetraceFactorM; tinfo[gid_MediumTerm][LifePeriod]=TimeFrameM;
 tinfo[gid_ShortTerm][TrailingStop]=TrailingStopS; tinfo[gid_ShortTerm][Step]=TrailingStepS; tinfo[gid_ShortTerm][Retrace]=RetraceFactorS; tinfo[gid_ShortTerm][LifePeriod]=TimeFrameS;
 tinfo[gid_VeryShortTerm][TrailingStop]=TrailingStopVS; tinfo[gid_VeryShortTerm][Step]=TrailingStepVS; tinfo[gid_VeryShortTerm][Retrace]=RetraceFactorVS; tinfo[gid_VeryShortTerm][LifePeriod]=TimeFrameVS;
+tinfo[gid_UltraShortTerm][TrailingStop]=TrailingStopUS; tinfo[gid_UltraShortTerm][Step]=TrailingStepUS; tinfo[gid_UltraShortTerm][Retrace]=RetraceFactorUS; tinfo[gid_UltraShortTerm][LifePeriod]=TimeFrameUS;
+tinfo[gid_InstantTerm][TrailingStop]=TrailingStopI; tinfo[gid_InstantTerm][Step]=TrailingStepI; tinfo[gid_InstantTerm][Retrace]=RetraceFactorI; tinfo[gid_InstantTerm][LifePeriod]=TimeFrameI;
+
 tinfo[gid_Panic][TrailingStop]=PanicStop; tinfo[gid_Panic][Step]=TrailingStepVS; tinfo[gid_Panic][Retrace]=PanicRetrace; tinfo[gid_Panic][LifePeriod]=PanicTimeFrame;
 return 0;
 }
@@ -53,10 +64,10 @@ return 0;
 int init()
 {
   Print("Grouped trailing stop version ",version);
-  Print("stops(VL,L,M,S,VS):", TrailingStopVL, ",",TrailingStopL, ",", TrailingStopM, ",", TrailingStopS, ",", TrailingStopVS);
-  Print("steps(VL,L,M,S,VS):", TrailingStepVL, ",", TrailingStepL, ",", TrailingStepM, ",", TrailingStepS, ",", TrailingStepVS);
-  Print("Retraces(VL,L,M,S,VS):", RetraceFactorVL, ",", RetraceFactorL, ",", RetraceFactorM, ",", RetraceFactorS, ",", RetraceFactorVS);
-  Print("LifeTimes(VL,L,M,S,VS):", TimeFrameVL, ",", TimeFrameL, ",", TimeFrameM, ",", TimeFrameS, ",", TimeFrameVS);
+  Print("stops(UL,VL,L,M,S,VS,US,I):", TrailingStopUL, ",", TrailingStopVL, ",",TrailingStopL, ",", TrailingStopM, ",", TrailingStopS, ",", TrailingStopVS, ",", TrailingStopUS, ",", TrailingStopI);
+  Print("steps(UL,VL,L,M,S,VS,US,I):", TrailingStepUL, ",", TrailingStepVL, ",", TrailingStepL, ",", TrailingStepM, ",", TrailingStepS, ",", TrailingStepVS, ",", TrailingStepUS, ",", TrailingStepI);
+  Print("Retraces(UL,VL,L,M,S,VS,US,I):", Fibo[RetraceFactorUL], ",", Fibo[RetraceFactorVL], ",", Fibo[RetraceFactorL], ",", Fibo[RetraceFactorM], ",", Fibo[RetraceFactorS], ",", Fibo[RetraceFactorVS], Fibo[RetraceFactorUS], ",", Fibo[RetraceFactorI]);
+  Print("LifeTimes(UL,VL,L,M,S,VS,US,I):", TimeFrameUL, ",", TimeFrameVL, ",", TimeFrameL, ",", TimeFrameM, ",", TimeFrameS, ",", TimeFrameVS, ",", TimeFrameUS, ",", TimeFrameI);
   string pairNames[100];
          int numPairs= StringSplit(AllowedPairNames, ',', pairNames);
          for( int i=0; i<numPairs; ++i) {
@@ -77,8 +88,6 @@ if(AllowedPairNamesOnly) {
 }
 
 if(ActiveTrading) {
-         int spikeSpacing[7];
-         for( int i = 0; i < 7; ++i) spikeSpacing[i] = SpikeMarginPIPs;
 
          string pairNames[100];
 
@@ -89,7 +98,7 @@ if(ActiveTrading) {
                      Print("Active trading conditions detected on ", pairNames[i]);
                      activeMessageFlags[i] = true;
                   }
-                  appendTradesIfAppropriate(pairNames[i],SpikeMarginPIPs, spikeSpacing,SpikePIPS,SpikeTradeLots,MaximumNetPositions * SpikeTradeLots,MaximumAbsolutePositions * SpikeTradeLots);
+                  appendTradesIfAppropriate(pairNames[i],SpikeMarginPIPs, SpikeMarginPIPs, SpikePIPS, SpikeTradeLots, MaximumNetPositions * SpikeTradeLots, MaximumAbsolutePositions * SpikeTradeLots);
                } else {
                         activeMessageFlags[i] = false;
                         }
@@ -122,8 +131,6 @@ return;
      }
 
      if(ActiveSpikeTrading) {
-         int spikeSpacing[7];
-         for( int i = 0; i < 7; ++i) spikeSpacing[i] = SpikeMarginPIPs;
 
          string pairNames[100];
          int numPairs= StringSplit(AllowedPairNames, ',', pairNames);
@@ -133,7 +140,7 @@ return;
                      Print("Active Spike trading conditions detected on ", pairNames[i]);
                      panicMessageFlags[i] = true;
                      }
-                  appendTradesIfAppropriate(pairNames[i],SpikeMarginPIPs, spikeSpacing,SpikePIPS,SpikeTradeLots,MaximumNetPositions * SpikeTradeLots,MaximumAbsolutePositions * SpikeTradeLots);
+                  appendTradesIfAppropriate(pairNames[i],SpikeMarginPIPs, SpikeMarginPIPs, SpikePIPS,SpikeTradeLots,MaximumNetPositions * SpikeTradeLots,MaximumAbsolutePositions * SpikeTradeLots);
                } else {
                         panicMessageFlags[i] = false;
                      }
