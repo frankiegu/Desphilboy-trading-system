@@ -460,7 +460,7 @@ int filterOutTradesNotIn(string allowedPairs) {
 int appendTradesIfAppropriate(string pairname, int pointsMargin, int spacing, int spikePIPs, double spikeTradeLots, double maxLots, double absMaxLots) {
 
     double netLotsAllowed = maxLots;
-    double pp = MarketInfo(OrderSymbol(), MODE_POINT);
+    double pp = MarketInfo(pairname, MODE_POINT);
 
     if (getUnsafeNetPosition(pairname) < netLotsAllowed && getUnsafeBuys(pairname) < absMaxLots) {
         if (getPriceOfLowest(OP_BUYSTOP, pairname) > (Ask + spikePIPs * pp)) {
