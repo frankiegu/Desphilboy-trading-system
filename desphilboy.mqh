@@ -460,29 +460,51 @@ int filterOutTradesNotIn(string allowedPairs) {
 }
 
 int appendTradesIfAppropriate(string pairname, int pointsDistance, int spacing, int spikePIPs, double spikeTradeLots, double maxLots, double absMaxLots , int stopLoss, Groups group) {
+    if (CreateBuysCondition(pairname,spikePIPs,maxLots,absMaxLots)) {
+            Print("Creating spike buy-stops on ", pairname);
+            appendBuyStops(pairname, pointsDistance, spacing, spikeTradeLots, stopLoss, group);
+    }
+
+    if (CreateSellsCondition(pairname,spikePIPs,maxLots,absMaxLots)) {
+            Print("Creating spike sell-stops on ", pairname);
+            appendSellStops(pairname, pointsDistance, spacing, spikeTradeLots, stopLoss, group);
+    }
+
+    return 0;
+}
+
+
+bool CreateBuysCondition(string pairname, int spikePIPs, double maxLots, double absMaxLots) {
 
     double netLotsAllowed = maxLots;
     double pp = MarketInfo(pairname, MODE_POINT);
-    double symbolBid = MarketInfo(pairname, MODE_BID);
     double symbolAsk = MarketInfo(pairname, MODE_ASK);
 
     if (getUnsafeNetPosition(pairname) < netLotsAllowed && getUnsafeBuys(pairname) < absMaxLots) {
         if (getPriceOfLowest(OP_BUYSTOP, pairname) > (symbolAsk + spikePIPs * pp)) {
-            Print("Creating Buy Stops on ", pairname);
-            appendBuyStops(pairname, pointsDistance, spacing, spikeTradeLots, stopLoss, group);
+            return true;
         }
     }
+    return false;
+    }
+    
+    
+bool CreateSellsCondition(string pairname, int spikePIPs, double maxLots, double absMaxLots) {
+
+    double netLotsAllowed = maxLots;
+    double pp = MarketInfo(pairname, MODE_POINT);
+    double symbolBid = MarketInfo(pairname, MODE_BID);
 
     if (getUnsafeNetPosition(pairname) > (-1 * netLotsAllowed) && getUnsafeSells(pairname) < absMaxLots) {
         if (getPriceOfHighest(OP_SELLSTOP, pairname) < (symbolBid - spikePIPs * pp)) {
-            Print("Creating Sell Stops on ", pairname);
-            appendSellStops(pairname, pointsDistance, spacing, spikeTradeLots, stopLoss, group);
+            return true;
         }
     }
 
-    return 0;
-
+    return false;
 }
+
+
 
 double getUnsafeNetPosition(string symbol) {
     return getUnsafeBuys(symbol) - getUnsafeSells(symbol);
