@@ -1,7 +1,7 @@
 // Desphilboy Position Creator
 #property copyright "Iman Dezfuly"
 #property link      "http://www.Iman.ir"
-#define version      "20171201"
+#define version      "20171202"
 
 #include "./desphilboy.mqh"
 enum DoTradesToggler {YesDoTheTrdes, DoTheTradesYes };
@@ -17,14 +17,14 @@ extern double  BuyStartingPrice = 0.0;
 extern double  SellStartingPrice = 0.0;
 
 
-extern string     PIPsToStartI   = "1050,1200,1800,2400,2850,3000,3600,3750";
-extern string     PIPsToStartUS  = "300,1650,2250,2700";
-extern string     PIPsToStartVS  = "450,1500,2100,2550";
-extern string     PIPsToStartS   = "150,1350,1950";
-extern string     PIPsToStartM   = "900,3450";
-extern string     PIPsToStartL   = "800,3350";
-extern string     PIPsToStartVL  = "700,3250";
-extern string     PIPsToStartUL  = "600,3150";
+extern string     PIPsToStartI   = "1600,2800,3600,4000";
+extern string     PIPsToStartUS  = "1400,2600,3400,3800";
+extern string     PIPsToStartVS  = "1200,2400,3200";
+extern string     PIPsToStartS   = "1000,2200,3000";
+extern string     PIPsToStartM   = "800,2000";
+extern string     PIPsToStartL   = "600,1800";
+extern string     PIPsToStartVL  = "400";
+extern string     PIPsToStartUL  = "200";
 
 extern int     TradeSpacing = 95;
 
@@ -33,13 +33,13 @@ extern bool    CreateSells = true;
 
 extern bool PaintPositions = true;
 
-extern color UltraLongTermColour = clrDeepPink;
-extern color VeryLongTermColour = clrBlanchedAlmond;
+extern color UltraLongTermColour = clrDarkViolet;
+extern color VeryLongTermColour = clrMaroon;
 extern color LongTermColour = clrAqua;
 extern color MediumTermColour = clrGreen;
 extern color ShortTermColour = clrRed;
 extern color VeryShortTermColour = clrBlue;
-extern color UltraShortTermColour = clrOrange;
+extern color UltraShortTermColour = clrDarkOrange;
 extern color InstantTermColour = clrSienna;
 
 extern int StopLossUltraLong = 0;
