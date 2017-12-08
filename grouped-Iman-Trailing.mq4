@@ -16,11 +16,11 @@ TrailingStepS=30,TrailingStepVS=30,TrailingStepUS=30,TrailingStepI=30;
 extern FiboRetrace  RetraceFactorUL=WholeRetrace,RetraceFactorVL=WholeRetrace,RetraceFactorL=WholeRetrace,RetraceFactorM=AlmostWholeRetrace,
 RetraceFactorS=MaxRetrace,RetraceFactorVS=HalfRetrace,RetraceFactorUS=LowRetrace,RetraceFactorI=MinRetrace;
 
-extern LifeTimes TimeFrameUL=ThreeDays,TimeFrameVL=ThirtyTwoHours,TimeFrameL=SixteenHours,TimeFrameM=EightHours,
-TimeFrameS=FourHours,TimeFrameVS=TwoHours,TimeFrameUS=OneHour,TimeFrameI=HalfHour;
+extern LifeTimes TimeFrameUL=SixteenHours,TimeFrameVL=EightHours,TimeFrameL=SixHours,TimeFrameM=FourHours,
+TimeFrameS=TwoHours,TimeFrameVS=OneHour,TimeFrameUS=HalfHour,TimeFrameI=Quarter;
 extern bool ContinueLifeTimeAfterFirstSL=True;
-extern ENUM_TIMEFRAMES PanicTimeFrame=PERIOD_M5;
-extern int PanicPIPS = 800;
+extern ENUM_TIMEFRAMES PanicTimeFrame=PERIOD_M15;
+extern int PanicPIPS = 1000;
 extern int PanicStop = 50;
 extern FiboRetrace PanicRetrace=PaniclyRetrace;
 extern bool SpikeTrading=false;
@@ -116,8 +116,9 @@ void OnTimer()
            }
         }
      }
-
-   long numLoops = loopCounter - speedCounter;
+     
+     
+  long numLoops = loopCounter - speedCounter;
    speedCounter = loopCounter;
    if(ShowLoopingSpeed)
      { 
@@ -147,6 +148,29 @@ void start()
            }
         }
      }
+
+   if(ActiveTrading && (loopCounter % MAHMARAZA_RAHVARA_ID) == 0) 
+     {
+
+      string pairNames[100];
+
+      int numPairs=StringSplit(AllowedPairNames,',',pairNames);
+      for(int i=0; i<numPairs;++i) 
+        {
+         if(CreateBuysCondition(pairNames[i],ActiveTradingGap,MaximumNetPositions * ActiveAndSpikeLots, MaximumAbsolutePositions * ActiveAndSpikeLots)) 
+           {
+            Print("Creating active trading buystops on ",pairNames[i]);
+            appendBuyStops(pairNames[i],ActiveAndSpikeTradesDistance,SpikeAndActiveTradeSpacing,ActiveAndSpikeLots,ActiveAndSpikeTradeStopLoss,ActiveTradesGroup);
+           }
+
+         if(CreateSellsCondition(pairNames[i],ActiveTradingGap,MaximumNetPositions * ActiveAndSpikeLots, MaximumAbsolutePositions * ActiveAndSpikeLots)) 
+           {
+            Print("Creating active trading sellstops on ",pairNames[i]);
+            appendSellStops(pairNames[i],ActiveAndSpikeTradesDistance,SpikeAndActiveTradeSpacing,ActiveAndSpikeLots,ActiveAndSpikeTradeStopLoss,ActiveTradesGroup);
+           }
+        }
+     }
+
 
    if(SpikeTrading) 
      {
