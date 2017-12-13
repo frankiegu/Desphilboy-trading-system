@@ -39,10 +39,11 @@ extern int ActiveAndSpikeTradeStopLoss = 0;
 extern int MaximumNetPositions=3;
 extern int MaximumAbsolutePositions=4;
 
-extern string AllowedPairNames="USDJPY,GBPJPY,EURJPY,USDCAD,AUDUSD";
+extern string AllowedPairNames="USDJPY,GBPJPY,EURJPY,USDCAD,AUDUSD,XAUUSD";
 extern bool AllowedPairNamesOnly=true;
 extern int TimerSeconds=10;
 extern bool ShowLoopingSpeed=false;
+extern bool verboseLogging = false;
 
 long loopCounter=0;
 long speedCounter=0;
@@ -82,6 +83,8 @@ int init()
      }
    fillTrailingInfo(TrailingInfo);
    EventSetTimer(TimerSeconds);
+   
+   beVerbose = verboseLogging;
 
    return(0);
   }
@@ -196,16 +199,22 @@ void TrailingPositions(int TrailingStop,int TrailingStep,double RetraceFactor)
 //----
 
    double RetraceValue=RetraceFactor;
+   if(beVerbose) Print("Retrace factor is: ", RetraceFactor , " for ", OrderTicket());
    pp=MarketInfo(OrderSymbol(),MODE_POINT);
+   if(beVerbose) Print(OrderSymbol()," Point value is: ",pp);
    pDirectTrail=TrailingStop*pp;
+   if(beVerbose) Print(OrderTicket()," DirectTrail value is: ",pDirectTrail);
    pStep=TrailingStep*pp;
-
+   if(beVerbose) Print(OrderTicket()," Step value is: ",pStep);
+   
    if(OrderType()==OP_BUY)
      {
       pBid=MarketInfo(OrderSymbol(),MODE_BID);
       pDiff=pBid-OrderOpenPrice();
       pRetraceTrail=pDiff>pDirectTrail ?(pDiff-pDirectTrail)*RetraceValue : 0;
+      if(beVerbose) Print(OrderTicket()," RetraceTrail value is: ",pRetraceTrail);
       pRef=pBid-pDirectTrail-pRetraceTrail;
+      if(beVerbose) Print(OrderTicket()," Ref value is: ",pRef);
 
       if(pRef-OrderOpenPrice()>0)
         {// order is in profit.

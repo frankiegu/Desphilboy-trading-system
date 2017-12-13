@@ -132,6 +132,7 @@ double Fibo[] = {
 };
 
 static int TrailingInfo[gid_Panic + 1][LifePeriod + 1];
+static bool beVerbose = false;
 
 // common functions to work with Magic Numbers
 int createMagicNumber(int eaId, int groupId) {
@@ -252,7 +253,9 @@ Groups getGroup(int magicNumber) {
 }
 
 GroupIds getGroupId(int magicNumber) {
-    if (isVeryLongTerm(magicNumber)) {
+    if (isUltraLongTerm(magicNumber)) {
+        return gid_UltraLongTerm;
+    } else if (isVeryLongTerm(magicNumber)) {
         return gid_VeryLongTerm;
     } else if (isLongTerm(magicNumber)) {
         return gid_LongTerm;
@@ -262,8 +265,11 @@ GroupIds getGroupId(int magicNumber) {
         return gid_ShortTerm;
     } else if (isVeryShort(magicNumber)) {
         return gid_VeryShortTerm;
-    }
-    return gid_NoGroup;
+    } else if (isUltraShort(magicNumber)) {
+        return gid_UltraShortTerm;
+    } else if (isInstant(magicNumber)) {
+        return gid_InstantTerm;
+    } else return gid_NoGroup;
 }
 
 
@@ -299,22 +305,25 @@ int getPositionsInRange(string symbol, int operation, double center, int PIPsMar
 int getCurrentTrailingStop(int tradeTicket, int & trailingInfo[][], bool lifePeriodEffectiveAlways, bool panic = false) {
 
     if (panic) {
+         if(beVerbose) Print("returning a panic trailing stop for ", tradeTicket);
         return trailingInfo[gid_Panic][TrailingStop];
     }
 
     if (!OrderSelect(tradeTicket, SELECT_BY_TICKET, MODE_TRADES)) {
+          if(beVerbose) Print("could not find the order, returning a fail safe (panic) trailing stop for ", tradeTicket);
         return trailingInfo[gid_Panic][TrailingStop];
     }
 
     GroupIds orderGroup = getGroupId(OrderMagicNumber());
+    if(beVerbose) Print("Group Id is: " , orderGroup, " for ",tradeTicket); 
 
     if (trailingInfo[orderGroup][LifePeriod] == PERIOD_CURRENT) {
-
+         if(beVerbose) Print("active trailing calculation not enabled for group ", getGroupName(OrderMagicNumber())," returning constant trailing stop for ", tradeTicket);
         return trailingInfo[orderGroup][TrailingStop];
     }
 
     if (OrderStopLoss() != 0 && !lifePeriodEffectiveAlways) {
-
+         if(beVerbose) Print("active calculation not effective after first stop loss, returning constant trailing stop for ", tradeTicket);
         return trailingInfo[orderGroup][TrailingStop];
     }
 
@@ -324,11 +333,12 @@ int getCurrentTrailingStop(int tradeTicket, int & trailingInfo[][], bool lifePer
         lifeTimeInMinutes = 30;
     } // prevent divide by zero
     double timesLifeTimeElapsed = (minutesElapsed / lifeTimeInMinutes);
+    if(beVerbose) Print("timesLifeTimeElapsed is: " , timesLifeTimeElapsed, "for ", tradeTicket); 
     
     if( timesLifeTimeElapsed < 0 ) { timesLifeTimeElapsed = 0;} // avoid -1 and divide by zero
     
     int orderTrailingStop = (int)(trailingInfo[orderGroup][TrailingStop] / (1 + timesLifeTimeElapsed));
-    // Print("Factor is:", 1+ timesLifeTimeElapsed, ",Order Trailing Stop for ", tradeTicket, " is ", orderTrailingStop);
+    if(beVerbose) Print("Factor is:", 1+ timesLifeTimeElapsed, ",Order Trailing Stop for ", tradeTicket, " is ", orderTrailingStop);
     return orderTrailingStop;
 }
 
@@ -364,7 +374,7 @@ double getCurrentRetrace(int tradeTicket, int & trailingInfo[][], bool lifePerio
     if( timesLifeTimeElapsed < 0 ) { timesLifeTimeElapsed = 0;} // avoid -1 and divide by zero
     
     double orderRetrace = (Fibo[trailingInfo[orderGroup][Retrace]] / (1 + timesLifeTimeElapsed));
-    // Print("Factor is:", 1+ timesLifeTimeElapsed, ", Order retrace for ", tradeTicket, " is ", orderRetrace);
+    if(beVerbose) Print("Factor is:", 1+ timesLifeTimeElapsed, ", Order retrace for ", tradeTicket, " is ", orderRetrace);
     return orderRetrace;
 }
 
@@ -522,7 +532,7 @@ double getUnsafeBuys(string symbol) {
             }
         }
     }
-    //Print("unsafe balance buys:",balance);
+    if(beVerbose) Print("unsafe balance buys:",balance);
     return balance;
 }
 
@@ -536,7 +546,7 @@ double getUnsafeSells(string symbol) {
             }
         }
     }
-    //Print("unsafe balance sells:",balance);
+    if(beVerbose) Print("unsafe balance sells:",balance);
     return balance;
 }
 
