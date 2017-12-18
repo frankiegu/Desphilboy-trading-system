@@ -15,21 +15,21 @@ extern double  BuyLots = 0.01;
 extern double  SellLots = 0.01;
 extern double  BuyStartingPrice = 0.0;
 extern double  SellStartingPrice = 0.0;
-extern int TradesDistance = 200;
+extern int TradesDistance = 100;
 
 
 
 
-extern string     PIPsToStartI   = "1,9,15,20";
-extern string     PIPsToStartUS  = "3,11,17,19";
-extern string     PIPsToStartVS  = "5,13,18";
-extern string     PIPsToStartS   = "7,14,16";
-extern string     PIPsToStartM   = "8,12";
-extern string     PIPsToStartL   = "6,10";
-extern string     PIPsToStartVL  = "4";
-extern string     PIPsToStartUL  = "2";
+extern string     PIPsToStartI   = "1,2,3,5,6,8,9,11,12,14,15,17,18,20,21";
+extern string     PIPsToStartUS  = "22";
+extern string     PIPsToStartVS  = "7";
+extern string     PIPsToStartS   = "4";
+extern string     PIPsToStartM   = "19";
+extern string     PIPsToStartL   = "16";
+extern string     PIPsToStartVL  = "13";
+extern string     PIPsToStartUL  = "10";
 
-extern int     TradeSpacing = 95;
+extern int     TradeSpacing = 90;
 
 extern bool    CreateBuys = true;
 extern bool    CreateSells = true;

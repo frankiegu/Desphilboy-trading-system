@@ -7,17 +7,17 @@
 #include "./desphilboy.mqh"
 
 extern bool   AllPositions  =True;
-extern int    TrailingStopUL=850,TrailingStopVL = 800, TrailingStopL = 750, TrailingStopM = 700,
-TrailingStopS=650,TrailingStopVS=600,TrailingStopUS=550,TrailingStopI=500;
+extern int    TrailingStopUL=550,TrailingStopVL = 500, TrailingStopL = 450, TrailingStopM = 400,
+TrailingStopS=350,TrailingStopVS=300,TrailingStopUS=250,TrailingStopI=200;
 
 extern int    TrailingStepUL=30,TrailingStepVL=30,TrailingStepL=30,TrailingStepM=30,
 TrailingStepS=30,TrailingStepVS=30,TrailingStepUS=30,TrailingStepI=30;
 
-extern FiboRetrace  RetraceFactorUL=WholeRetrace,RetraceFactorVL=WholeRetrace,RetraceFactorL=WholeRetrace,RetraceFactorM=AlmostWholeRetrace,
-RetraceFactorS=MaxRetrace,RetraceFactorVS=HalfRetrace,RetraceFactorUS=LowRetrace,RetraceFactorI=MinRetrace;
+extern FiboRetrace  RetraceFactorUL=WholeRetrace,RetraceFactorVL=WholeRetrace,RetraceFactorL=AlmostWholeRetrace,RetraceFactorM=MaxRetrace,
+RetraceFactorS=HalfRetrace,RetraceFactorVS=LowRetrace,RetraceFactorUS=MinRetrace,RetraceFactorI=PaniclyRetrace;
 
-extern LifeTimes TimeFrameUL=SixteenHours,TimeFrameVL=EightHours,TimeFrameL=SixHours,TimeFrameM=FourHours,
-TimeFrameS=TwoHours,TimeFrameVS=OneHour,TimeFrameUS=HalfHour,TimeFrameI=Quarter;
+extern LifeTimes TimeFrameUL=SixteenHours,TimeFrameVL=EightHours,TimeFrameL=FourHours,TimeFrameM=TwoHours,
+TimeFrameS=OneHour,TimeFrameVS=HalfHour,TimeFrameUS=Quarter,TimeFrameI=OneMinute;
 extern bool ContinueLifeTimeAfterFirstSL=True;
 extern ENUM_TIMEFRAMES PanicTimeFrame=PERIOD_M15;
 extern int PanicPIPS = 1000;
@@ -44,6 +44,7 @@ extern bool AllowedPairNamesOnly=true;
 extern int TimerSeconds=10;
 extern bool ShowLoopingSpeed=false;
 extern bool verboseLogging = false;
+extern bool ShowVolumeBallances = false;
 
 long loopCounter=0;
 long speedCounter=0;
@@ -127,6 +128,23 @@ void OnTimer()
      { 
       Print("Looping Speed is:",(int)((60* numLoops)/TimerSeconds)," per minute.");
      }
+     
+   if(ShowVolumeBallances) {
+      string pairNames[100];
+      int numPairs=StringSplit(AllowedPairNames,',',pairNames);
+      for(int i=0; i<numPairs;++i) 
+        {
+         Print("Volume of all sells for ", pairNames[i], " is:", getVolBallance(pairNames[i], OP_SELL));
+         Print("Volume of all sellstops for ", pairNames[i], " is:", getVolBallance(pairNames[i], OP_SELLSTOP));
+         Print("Volume of Unsafe sells for ", pairNames[i], " is:", getUnsafeSells(pairNames[i]));
+         
+         Print("Volume of all buys for ", pairNames[i], " is:", getVolBallance(pairNames[i], OP_BUY));
+         Print("Volume of all buystops for ", pairNames[i], " is:", getVolBallance(pairNames[i], OP_BUYSTOP));
+         Print("Volume of Unsafe buys for ", pairNames[i], " is:", getUnsafeBuys(pairNames[i]));
+         
+        }   
+   }  
+   
    return;
   }
 //+------------------------------------------------------------------+
@@ -172,6 +190,7 @@ void start()
             appendSellStops(pairNames[i],ActiveAndSpikeTradesDistance,SpikeAndActiveTradeSpacing,ActiveAndSpikeLots,ActiveAndSpikeTradeStopLoss,ActiveTradesGroup);
            }
         }
+   
      }
 
 
@@ -185,7 +204,7 @@ void start()
            {
             appendTradesIfAppropriate(pairNames[i],ActiveAndSpikeTradesDistance,SpikeAndActiveTradeSpacing,SpikeHeight,ActiveAndSpikeLots,MaximumNetPositions*ActiveAndSpikeLots,MaximumAbsolutePositions*ActiveAndSpikeLots,ActiveAndSpikeTradeStopLoss,SpikeTradesGroup);
            }
-        }
+       }
      }
 
    loopCounter++;

@@ -82,6 +82,7 @@ enum TrailingFields {
 
 enum LifeTimes {
     NoLifeTime = 0,
+    OneMinute = 1,
     FiveMinutes = 5,
     TenMinutes = 10,
     Quarter = 15,
@@ -489,6 +490,12 @@ bool CreateBuysCondition(string pairname, int spikePIPs, double maxLots, double 
     double netLotsAllowed = maxLots;
     double pp = MarketInfo(pairname, MODE_POINT);
     double symbolAsk = MarketInfo(pairname, MODE_ASK);
+  
+    if(beVerbose) {
+     if (getUnsafeNetPosition(pairname) >= netLotsAllowed) Print("for ", pairname, " unsafe net position is ", getUnsafeNetPosition(pairname), " more than max ", maxLots, " falsifying creatBuysCondition.");
+     if (getUnsafeBuys(pairname) >= absMaxLots) Print("for ", pairname, " unsafe buy position is ", getUnsafeBuys(pairname), " more than absMax", absMaxLots, " falsifying creatBuysCondition.");
+     if (getPriceOfLowest(OP_BUYSTOP, pairname) <= (symbolAsk + spikePIPs * pp)) Print("for ", pairname, " lowest buy stop is ", getPriceOfLowest(OP_BUYSTOP, pairname), " lower than ", symbolAsk + spikePIPs * pp, " falsifying creatBuysCondition.");
+    }
 
     if (getUnsafeNetPosition(pairname) < netLotsAllowed && getUnsafeBuys(pairname) < absMaxLots) {
         if (getPriceOfLowest(OP_BUYSTOP, pairname) > (symbolAsk + spikePIPs * pp)) {
@@ -504,6 +511,14 @@ bool CreateSellsCondition(string pairname, int spikePIPs, double maxLots, double
     double netLotsAllowed = maxLots;
     double pp = MarketInfo(pairname, MODE_POINT);
     double symbolBid = MarketInfo(pairname, MODE_BID);
+    
+    if(beVerbose) {
+     if (getUnsafeNetPosition(pairname) < (-1 * netLotsAllowed)) Print("for ", pairname, " unsafe net position is ", getUnsafeNetPosition(pairname), " less than max ", -1 * maxLots, " falsifying creatSellCondition.");
+     if (getUnsafeSells(pairname) >= absMaxLots) Print("for ", pairname, " unsafe sell position is ", getUnsafeSells(pairname), " more than absMax", absMaxLots, " falsifying creatSellCondition.");
+     if (getPriceOfHighest(OP_SELLSTOP, pairname) >= (symbolBid - spikePIPs * pp)) Print("for ", pairname, " highest sell stop is ", getPriceOfHighest(OP_SELLSTOP, pairname), " higher than ", symbolBid - spikePIPs * pp, " falsifying creatSellCondition.");
+     Print( "netLotsAllowed: " , netLotsAllowed);
+    }
+   
 
     if (getUnsafeNetPosition(pairname) > (-1 * netLotsAllowed) && getUnsafeSells(pairname) < absMaxLots) {
         if (getPriceOfHighest(OP_SELLSTOP, pairname) < (symbolBid - spikePIPs * pp)) {
@@ -517,6 +532,7 @@ bool CreateSellsCondition(string pairname, int spikePIPs, double maxLots, double
 
 
 double getUnsafeNetPosition(string symbol) {
+if(beVerbose) Print( "getUnsafeNetPosition: " , getUnsafeBuys(symbol) - getUnsafeSells(symbol), " for ", symbol);
     return getUnsafeBuys(symbol) - getUnsafeSells(symbol);
 }
 
@@ -528,8 +544,15 @@ double getUnsafeBuys(string symbol) {
     for (int i = 0; i < OrdersTotal(); i++) {
         if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) {
             if (OrderSymbol() == symbol) {
-                if (OrderType() == OP_BUY && OrderStopLoss() < OrderOpenPrice()) balance = balance + OrderLots();
+                if (OrderType() == OP_BUY && (OrderStopLoss() < OrderOpenPrice()) ) { 
+                if(beVerbose) Print("getunsafe buys adding ", OrderLots(), "for ", OrderTicket(), " OrderStopLoss: ", OrderStopLoss(), " OpenPrice: ", OrderOpenPrice()); 
+                balance = balance + OrderLots();
+                } else {
+                
+                    if( OrderType() == OP_BUY && OrderStopLoss() != 0) {if(beVerbose) Print("Safe buy found,  not adding ", OrderLots(), "for ", OrderTicket(), " OrderStopLoss: ", OrderStopLoss(), " OpenPrice: ", OrderOpenPrice()); }
+                 }
             }
+            
         }
     }
     if(beVerbose) Print("unsafe balance buys:",balance);
@@ -542,7 +565,12 @@ double getUnsafeSells(string symbol) {
     for (int i = 0; i < OrdersTotal(); i++) {
         if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) {
             if (OrderSymbol() == symbol) {
-                if (OrderType() == OP_SELL && (OrderStopLoss() > OrderOpenPrice() || OrderStopLoss() == 0)) balance = balance + OrderLots();
+                if (OrderType() == OP_SELL && (OrderStopLoss() > OrderOpenPrice() || OrderStopLoss() == 0)) {
+                  if(beVerbose) Print("getunsafe sells adding ", OrderLots(), "for ", OrderTicket(), " OrderStopLoss: ", OrderStopLoss(), " OpenPrice: ", OrderOpenPrice()); 
+                 balance = balance + OrderLots();
+                 } else {
+                    if (OrderType() == OP_SELL) {if(beVerbose) Print("Safe sell found,  not adding ", OrderLots(), "for ", OrderTicket(), " OrderStopLoss: ", OrderStopLoss(), " OpenPrice: ", OrderOpenPrice()); }
+                 }
             }
         }
     }
@@ -550,35 +578,44 @@ double getUnsafeSells(string symbol) {
     return balance;
 }
 
-double getAppropriateLotSize() {
-    return AccountEquity() / 10000.0;
+double getVolBallance(string symbol, int orderType = OP_SELL) {
+    double balance = 0;
+
+    for (int i = 0; i < OrdersTotal(); i++) {
+        if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) {
+            if (OrderSymbol() == symbol) {
+                if (OrderType() == orderType) balance = balance + OrderLots();
+            }
+        }
+    }
+
+    return balance;
 }
 
 
-
-int appendBuyStops(string pairName, int distance, int spacing, double lots, int stoploss, Groups grp) {
+int appendBuyStops(string pairName, int distance, int spacing, double lots, int stoploss, Groups grp, int numTrades=8) {
     double point = MarketInfo(pairName, MODE_POINT);
     double symbolAsk = MarketInfo(pairName, MODE_ASK);
+    Groups g=UltraLongTerm;
     
-    createBuyStop(pairName, symbolAsk, 0, distance, stoploss, 0, grp, distance, lots, 100, 0, spacing);
-    createBuyStop(pairName, symbolAsk, 1, distance, stoploss, 0, grp, distance, lots, 100, 0, spacing);
-    createBuyStop(pairName, symbolAsk, 2, distance, stoploss, 0, grp, distance, lots, 100, 0, spacing);
-    createBuyStop(pairName, symbolAsk, 3, distance, stoploss, 0, grp, distance, lots, 100, 0, spacing);
-    createBuyStop(pairName, symbolAsk, 4, distance, stoploss, 0, grp, distance, lots, 100, 0, spacing);
+    for( int i=0; i< numTrades; i++, g+= UltraLongTerm ){
+      createBuyStop(pairName, symbolAsk, i, distance, stoploss, 0, MathMax(g,grp), distance, lots, 100, 0, spacing);
+     } 
+    
     return 0;
 }
 
 
 
-int appendSellStops(string pairName, int distance, int spacing, double lots, int stoploss, Groups grp) {
+int appendSellStops(string pairName, int distance, int spacing, double lots, int stoploss, Groups grp, int numTrades=8) {
     double point = MarketInfo(pairName, MODE_POINT);
    double symbolBid = MarketInfo(pairName, MODE_BID);
+   Groups g=UltraLongTerm;
 
-    createSellStop(pairName, symbolBid, 0, distance, stoploss, 0, grp, distance, lots, 100, 0, spacing);
-    createSellStop(pairName, symbolBid, 1, distance, stoploss, 0, grp, distance, lots, 100, 0, spacing);
-    createSellStop(pairName, symbolBid, 2, distance, stoploss, 0, grp, distance, lots, 100, 0, spacing);
-    createSellStop(pairName, symbolBid, 3, distance, stoploss, 0, grp, distance, lots, 100, 0, spacing);
-    createSellStop(pairName, symbolBid, 4, distance, stoploss, 0, grp, distance, lots, 100, 0, spacing);
+     for( int i=0; i< numTrades; i++, g+= UltraLongTerm ){
+      createSellStop(pairName, symbolBid, i, distance, stoploss, 0, MathMax(g,grp), distance, lots, 100, 0, spacing);
+     } 
+     
     return 0;
 }
 
