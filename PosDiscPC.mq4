@@ -7,29 +7,30 @@
 enum DoTradesToggler {YesDoTheTrdes, DoTheTradesYes };
 
 extern DoTradesToggler DoTrades = YesDoTheTrdes;
-DoTradesToggler doTradesTogglerCopy = YesDoTheTrdes;
+DoTradesToggler doTradesTogglerCopy = DoTrades;
 
 extern TradeActs    Action = NoAction;
+TradeActs actionCopy = Action;
 
 extern double  BuyLots = 0.01;
 extern double  SellLots = 0.01;
 extern double  BuyStartingPrice = 0.0;
 extern double  SellStartingPrice = 0.0;
-extern int TradesDistance = 100;
+extern int TradesDistance = 70;
 
 
 
 
-extern string     PIPsToStartI   = "1,2,3,5,6,8,9,11,12,14,15,17,18,20,21";
-extern string     PIPsToStartUS  = "22";
-extern string     PIPsToStartVS  = "7";
-extern string     PIPsToStartS   = "4";
-extern string     PIPsToStartM   = "19";
-extern string     PIPsToStartL   = "16";
-extern string     PIPsToStartVL  = "13";
-extern string     PIPsToStartUL  = "10";
+extern string     PIPsToStartI   = "1,2,4,5,7,8,10,11,13,14,16,17,19,20";
+extern string     PIPsToStartUS  = "3";
+extern string     PIPsToStartVS  = "21";
+extern string     PIPsToStartS   = "18";
+extern string     PIPsToStartM   = "15";
+extern string     PIPsToStartL   = "12";
+extern string     PIPsToStartVL  = "9";
+extern string     PIPsToStartUL  = "6";
 
-extern int     TradeSpacing = 90;
+extern int     TradeSpacing = 60;
 
 extern bool    CreateBuys = true;
 extern bool    CreateSells = true;
@@ -53,7 +54,7 @@ extern int Slippage = 50;
 extern int TradesExpireAfterHours = 0;
 extern double BuyTradesDistanceCoefficient = 1.0;
 extern double SellTradesDistanceCoefficient = 1.0;
-extern int InitialPIPsToStart = 30;
+extern int InitialPIPsToStart = 50;
 
 
 
@@ -66,8 +67,9 @@ static bool doPositionsOnce = false;
 #define DELAY 100
 
 bool isDoPositionsToggled() {
-   if(doTradesTogglerCopy != DoTrades) {
+   if(doTradesTogglerCopy != DoTrades || actionCopy != Action) {
       doTradesTogglerCopy = DoTrades;
+      actionCopy = Action;
       return true;
    }
    
@@ -78,17 +80,13 @@ bool isDoPositionsToggled() {
 void init()
 {
    Print("Desphilboy position creator ",version, " on ", Symbol());
-
-   if (PaintPositions) paintPositions();
-
    EventSetTimer(TIMERDELAYSECONDS);
 
 return;
 }
 
 
-void OnTimer() {
-   
+void OnTimer() {   
    if(isDoPositionsToggled() && Action != NoAction) {
       int result = MessageBox("Are you sure you want to Alter " + Symbol() +" positions according to params?",
                               "Confirm creation of positions:",
@@ -97,15 +95,22 @@ void OnTimer() {
       if( result == IDOK){
          doPositionsOnce = true;
       }
-   }
-   
-   if(PaintPositions) {
-      paintPositions();
-   }
-   
+   }   
+   EventKillTimer();
 }
 
 
+void OnChartEvent(const int id,         // Event identifier  
+                  const long& lparam,   // Event parameter of long type
+                  const double& dparam, // Event parameter of double type
+                  const string& sparam) // Event parameter of string type
+  {
+if( id ==CHARTEVENT_CLICK || id == CHARTEVENT_CHART_CHANGE ) {
+      if(PaintPositions) {
+         paintPositions();
+      }
+   }
+}
 
 //+------------------------------------------------------------------+
 //| expert start function                                            |
@@ -124,7 +129,7 @@ void start()
                                              }
         }
 
-      doPositionsOnce = false;
+  doPositionsOnce = false;
   return;
 }
 
