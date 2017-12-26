@@ -83,6 +83,7 @@ enum TrailingFields {
 enum LifeTimes {
     NoLifeTime = 0,
     OneMinute = 1,
+    TwoMinutes = 2,
     FiveMinutes = 5,
     TenMinutes = 10,
     Quarter = 15,
