@@ -127,6 +127,10 @@ void start()
                                  } else if ( Action == Terminate ) {
                                                 doTerminate();
                                              }
+        if(PaintPositions) {
+         paintPositions();
+        }
+        
         }
 
   doPositionsOnce = false;

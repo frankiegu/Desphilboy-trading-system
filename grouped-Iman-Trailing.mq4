@@ -7,17 +7,17 @@
 #include "./desphilboy.mqh"
 
 extern bool   AllPositions  =True;
-extern int    TrailingStopUL=550,TrailingStopVL = 500, TrailingStopL = 450, TrailingStopM = 400,
-TrailingStopS=350,TrailingStopVS=300,TrailingStopUS=250,TrailingStopI=200;
+extern int    TrailingStopUL=600,TrailingStopVL = 550, TrailingStopL = 500, TrailingStopM = 450,
+TrailingStopS=400,TrailingStopVS=350,TrailingStopUS=300,TrailingStopI=250;
 
-extern int    TrailingStepUL=30,TrailingStepVL=30,TrailingStepL=30,TrailingStepM=30,
+extern int    TrailingStepUL=50,TrailingStepVL=50,TrailingStepL=50,TrailingStepM=40,
 TrailingStepS=30,TrailingStepVS=30,TrailingStepUS=30,TrailingStepI=30;
 
 extern FiboRetrace  RetraceFactorUL=WholeRetrace,RetraceFactorVL=WholeRetrace,RetraceFactorL=AlmostWholeRetrace,RetraceFactorM=MaxRetrace,
 RetraceFactorS=HalfRetrace,RetraceFactorVS=LowRetrace,RetraceFactorUS=MinRetrace,RetraceFactorI=PaniclyRetrace;
 
-extern LifeTimes TimeFrameUL=SixteenHours,TimeFrameVL=EightHours,TimeFrameL=FourHours,TimeFrameM=TwoHours,
-TimeFrameS=OneHour,TimeFrameVS=HalfHour,TimeFrameUS=Quarter,TimeFrameI=OneMinute;
+extern LifeTimes TimeFrameUL=ThirtyTwoHours,TimeFrameVL=SixteenHours,TimeFrameL=EightHours,TimeFrameM=FourHours,
+TimeFrameS=TwoHours,TimeFrameVS=OneHour,TimeFrameUS=HalfHour,TimeFrameI=TenMinutes;
 extern bool ContinueLifeTimeAfterFirstSL=True;
 extern ENUM_TIMEFRAMES PanicTimeFrame=PERIOD_M15;
 extern int PanicPIPS = 1000;
