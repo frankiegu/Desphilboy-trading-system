@@ -4,36 +4,41 @@
 #define version      "20171202"
 
 #include "./desphilboy.mqh"
-enum DoTradesToggler {YesDoTheTrdes, DoTheTradesYes };
+
+#define TIMERDELAYSECONDS 10
+#define DELAY 100
+
+enum DoTradesToggler {
+    YesDoTheTrdes, DoTheTradesYes
+};
 
 extern DoTradesToggler DoTrades = YesDoTheTrdes;
 DoTradesToggler doTradesTogglerCopy = DoTrades;
 
-extern TradeActs    Action = NoAction;
+extern TradeActs Action = NoAction;
 TradeActs actionCopy = Action;
 
-extern double  BuyLots = 0.01;
-extern double  SellLots = 0.01;
-extern double  BuyStartingPrice = 0.0;
-extern double  SellStartingPrice = 0.0;
+extern double BuyLots = 0.01;
+extern double SellLots = 0.01;
+extern double BuyStartingPrice = 0.0;
+extern double SellStartingPrice = 0.0;
 extern int TradesDistance = 70;
 
 
 
+extern string PIPsToStartI = "1,2,4,5,7,8,10,11,13,14,16,17,19,20";
+extern string PIPsToStartUS = "3";
+extern string PIPsToStartVS = "21";
+extern string PIPsToStartS = "18";
+extern string PIPsToStartM = "15";
+extern string PIPsToStartL = "12";
+extern string PIPsToStartVL = "9";
+extern string PIPsToStartUL = "6";
 
-extern string     PIPsToStartI   = "1,2,4,5,7,8,10,11,13,14,16,17,19,20";
-extern string     PIPsToStartUS  = "3";
-extern string     PIPsToStartVS  = "21";
-extern string     PIPsToStartS   = "18";
-extern string     PIPsToStartM   = "15";
-extern string     PIPsToStartL   = "12";
-extern string     PIPsToStartVL  = "9";
-extern string     PIPsToStartUL  = "6";
+extern int TradeSpacing = 60;
 
-extern int     TradeSpacing = 60;
-
-extern bool    CreateBuys = true;
-extern bool    CreateSells = true;
+extern bool CreateBuys = true;
+extern bool CreateSells = true;
 
 extern bool PaintPositions = true;
 
@@ -56,15 +61,9 @@ extern double BuyTradesDistanceCoefficient = 1.0;
 extern double SellTradesDistanceCoefficient = 1.0;
 extern int InitialPIPsToStart = 50;
 
-
-
-
-
 static bool askUserToDoPositions = false;
 static bool doPositionsOnce = false;
 
-#define TIMERDELAYSECONDS 10
-#define DELAY 100
 
 bool isDoPositionsToggled() {
    if(doTradesTogglerCopy != DoTrades || actionCopy != Action) {
@@ -72,7 +71,7 @@ bool isDoPositionsToggled() {
       actionCopy = Action;
       return true;
    }
-   
+
    return false;
 }
 
@@ -86,7 +85,7 @@ return;
 }
 
 
-void OnTimer() {   
+void OnTimer() {
    if(isDoPositionsToggled() && Action != NoAction) {
       int result = MessageBox("Are you sure you want to Alter " + Symbol() +" positions according to params?",
                               "Confirm creation of positions:",
@@ -95,12 +94,12 @@ void OnTimer() {
       if( result == IDOK){
          doPositionsOnce = true;
       }
-   }   
+   }
    EventKillTimer();
 }
 
 
-void OnChartEvent(const int id,         // Event identifier  
+void OnChartEvent(const int id,         // Event identifier
                   const long& lparam,   // Event parameter of long type
                   const double& dparam, // Event parameter of double type
                   const string& sparam) // Event parameter of string type
@@ -130,7 +129,7 @@ void start()
         if(PaintPositions) {
          paintPositions();
         }
-        
+
         }
 
   doPositionsOnce = false;
@@ -170,10 +169,10 @@ return 0;
 int doPositions()
 {
 int spacings[gid_Panic +1];
- 
+
  string distances[100];
  int numTrades;
- 
+
  /* createBuyStop(
     string symbol,
     double startingPrice,
@@ -187,7 +186,7 @@ int spacings[gid_Panic +1];
     int slippage,
     int tradesExpireAfterHours,
     int spacing) */
- 
+
    if ( CreateBuys ) {
          numTrades= StringSplit(PIPsToStartUL, ',', distances);
          for(int i=0; i< numTrades; ++i) {
@@ -489,42 +488,39 @@ numTrades= StringSplit(PIPsToStartI, ',', distances);
 
 
 
-int paintPositions()
-{
+int paintPositions() {
 
-color  colour;
-string name;
-string symbol;
-long chartId;
-int subwindow = -1;
-datetime xdatetime;
-double yprice;
-int x;
+    color colour;
+    string name;
+    string symbol;
+    long chartId;
+    int subwindow = -1;
+    datetime xdatetime;
+    double yprice;
+    int x;
 
- x = 500;
-   chartId = ChartID();
-   symbol = Symbol();
-   x = (int) (ChartWidthInPixels() * 0.9);
+    x = 500;
+    chartId = ChartID();
+    symbol = Symbol();
+    x = (int)(ChartWidthInPixels() * 0.9);
 
-   if(ChartXYToTimePrice(
-   ChartID(),     // Chart ID
-   x,            // The X coordinate on the chart
-   0,            // The Y coordinate on the chart
-   subwindow,   // The number of the subwindow
-   xdatetime,         // Time on the chart
-   yprice         // Price on the chart
-   ))
-   {
-      // Print( "colouring positions");
-   }
-   else return 0;
+    if (ChartXYToTimePrice(
+        ChartID(), // Chart ID
+        x, // The X coordinate on the chart
+        0, // The Y coordinate on the chart
+        subwindow, // The number of the subwindow
+        xdatetime, // Time on the chart
+        yprice // Price on the chart
+    )) {
+        // Print( "colouring positions");
+    } else return 0;
 
-  ObjectsDeleteAll(chartId,0, OBJ_ARROW);
+    ObjectsDeleteAll(chartId, 0, OBJ_ARROW);
 
-  for(int i=0; i<OrdersTotal(); i++) {
+    for (int i = 0; i < OrdersTotal(); i++) {
 
-      if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) {
-         if(OrderSymbol() == symbol) {
+        if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) {
+            if (OrderSymbol() == symbol) {
 
                 if (getGroup(OrderMagicNumber()) == InstantTerm) {
                     colour = InstantTermColour;
@@ -546,77 +542,68 @@ int x;
                     colour = clrNONE;
                 }
 
-            name = Symbol() + "-" + getGroupName(OrderMagicNumber()) + "-" + IntegerToString(i);
-            bool bResult = ObjectCreate(
-                              chartId
-                              , name
-                              , OBJ_ARROW_BUY
-                              , 0
-                              , xdatetime
-                              , OrderOpenPrice());
-            if(!bResult){
-               Print (" could not paint arrow for position", OrderTicket());
-            } else {
-                  ObjectSetInteger(chartId, name, OBJPROP_COLOR, colour);
-              }
-           }
-      }
-   }
+                name = Symbol() + "-" + getGroupName(OrderMagicNumber()) + "-" + IntegerToString(i);
+                bool bResult = ObjectCreate(
+                    chartId, name, OBJ_ARROW_BUY, 0, xdatetime, OrderOpenPrice());
+                if (!bResult) {
+                    Print(" could not paint arrow for position", OrderTicket());
+                } else {
+                    ObjectSetInteger(chartId, name, OBJPROP_COLOR, colour);
+                }
+            }
+        }
+    }
 
-   return(0);
+    return (0);
 }
 
-int ChartWidthInPixels(const long chart_ID=0)
-  {
-//--- prepare the variable to get the property value
-   long result=-1;
-//--- reset the error value
-   ResetLastError();
-//--- receive the property value
-   if(!ChartGetInteger(chart_ID,CHART_WIDTH_IN_PIXELS,0,result))
-     {
-      //--- display the error message in Experts journal
-      Print(__FUNCTION__+", Error Code = ",GetLastError());
-     }
-//--- return the value of the chart property
-   return((int)result);
-  }
+int ChartWidthInPixels(const long chart_ID = 0) {
+    //--- prepare the variable to get the property value
+    long result = -1;
+    //--- reset the error value
+    ResetLastError();
+    //--- receive the property value
+    if (!ChartGetInteger(chart_ID, CHART_WIDTH_IN_PIXELS, 0, result)) {
+        //--- display the error message in Experts journal
+        Print(__FUNCTION__ + ", Error Code = ", GetLastError());
+    }
+    //--- return the value of the chart property
+    return ((int) result);
+}
 
+int clearPositions(bool all = false, int slippage = 35, bool buys = true, bool sells = true) {
+    bool foundAnyTrades = true;
+    while (foundAnyTrades) {
+        foundAnyTrades = false;
+        for (int i = 0; i < OrdersTotal(); i++) {
 
-int clearPositions( bool all=false, int slippage =35, bool buys = true, bool sells = true)
-{
-bool foundAnyTrades = true;
-while(foundAnyTrades) {
-foundAnyTrades = false;
-for(int i=0; i<OrdersTotal(); i++) {
+            if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) {
 
-        if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) {
+                if (OrderSymbol() == Symbol()) {
 
-           if ( OrderSymbol()==Symbol()) {
+                    if (all || OrderType() == OP_BUYSTOP || OrderType() == OP_SELLSTOP) {
+                        int result = false;
+                        if (OrderType() == OP_BUY && buys) {
+                            result = OrderClose(OrderTicket(), OrderLots(), Bid, slippage);
+                            foundAnyTrades = true;
+                        }
+                        if (OrderType() == OP_SELL && sells) {
+                            result = OrderClose(OrderTicket(), OrderLots(), Ask, slippage);
+                            foundAnyTrades = true;
+                        }
+                        if ((OrderType() == OP_SELLSTOP && sells) || (OrderType() == OP_BUYSTOP && buys)) {
+                            result = OrderDelete(OrderTicket());
+                            foundAnyTrades = true;
+                        }
+                        if (!result) {
+                            Print("Order ", OrderTicket(), " delete failed.");
+                        }
 
-               if (all || OrderType() == OP_BUYSTOP || OrderType() == OP_SELLSTOP) {
-                     int result = false;
-                     if(OrderType() == OP_BUY && buys) {
-                              result = OrderClose(OrderTicket(),OrderLots(),Bid,slippage);
-                              foundAnyTrades = true;
-                              }
-                     if(OrderType() == OP_SELL && sells) {
-                               result = OrderClose(OrderTicket(),OrderLots(),Ask,slippage);
-                               foundAnyTrades = true;
-                               }
-                     if((OrderType() == OP_SELLSTOP && sells )|| (OrderType() == OP_BUYSTOP && buys)) {
-                               result = OrderDelete(OrderTicket());
-                               foundAnyTrades = true;
-                                       }
-                     if( !result ) {
-                        Print( "Order ", OrderTicket(), " delete failed.");
-                       }
-
-               }
+                    }
+                }
             }
-         }
-      }
-   }
+        }
+    }
 
-return 0;
+    return 0;
 }
