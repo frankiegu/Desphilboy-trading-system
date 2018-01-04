@@ -18,7 +18,7 @@ extern LifeTimes TimeFrameUL = ThirtyTwoHours, TimeFrameVL = SixteenHours, TimeF
 TimeFrameS = TwoHours, TimeFrameVS = OneHour, TimeFrameUS = HalfHour, TimeFrameI = Quarter;
 extern bool ContinueLifeTimeAfterFirstSL = true;
 extern ENUM_TIMEFRAMES PanicTimeFrame = PERIOD_M15;
-extern int PanicPIPS = 1000;
+extern int PanicPIPS = 800;
 extern int PanicStop = 50;
 extern FiboRetrace PanicRetrace = PaniclyRetrace;
 extern bool SpikeTrading = false;
@@ -190,21 +190,21 @@ void start()
         if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) {
             if ((ManageAllPairs || OrderSymbol() == Symbol()) && (OrderType() == OP_BUY || OrderType() == OP_SELL)) {
                 if (isUltraLongTerm(OrderMagicNumber())) {
-                    TrailingPositions(getCurrentTrailingStop(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(), PanicTimeFrame, PanicPIPS)), TrailingStepUL, getCurrentRetrace(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(), PanicTimeFrame, PanicPIPS)));
+                    TrailingPositions(getCurrentTrailingStop(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanicTrade(OrderTicket(), PanicTimeFrame, PanicPIPS)), TrailingStepUL, getCurrentRetrace(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(), PanicTimeFrame, PanicPIPS)));
                 } else if (isVeryLongTerm(OrderMagicNumber())) {
-                    TrailingPositions(getCurrentTrailingStop(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(), PanicTimeFrame, PanicPIPS)), TrailingStepVL, getCurrentRetrace(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(), PanicTimeFrame, PanicPIPS)));
+                    TrailingPositions(getCurrentTrailingStop(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanicTrade(OrderTicket(), PanicTimeFrame, PanicPIPS)), TrailingStepVL, getCurrentRetrace(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(), PanicTimeFrame, PanicPIPS)));
                 } else if (isLongTerm(OrderMagicNumber())) {
-                    TrailingPositions(getCurrentTrailingStop(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(), PanicTimeFrame, PanicPIPS)), TrailingStepL, getCurrentRetrace(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(), PanicTimeFrame, PanicPIPS)));
+                    TrailingPositions(getCurrentTrailingStop(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanicTrade(OrderTicket(), PanicTimeFrame, PanicPIPS)), TrailingStepL, getCurrentRetrace(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(), PanicTimeFrame, PanicPIPS)));
                 } else if (isMediumTerm(OrderMagicNumber())) {
-                    TrailingPositions(getCurrentTrailingStop(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(), PanicTimeFrame, PanicPIPS)), TrailingStepM, getCurrentRetrace(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(), PanicTimeFrame, PanicPIPS)));
+                    TrailingPositions(getCurrentTrailingStop(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanicTrade(OrderTicket(), PanicTimeFrame, PanicPIPS)), TrailingStepM, getCurrentRetrace(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(), PanicTimeFrame, PanicPIPS)));
                 } else if (isShortTerm(OrderMagicNumber())) {
-                    TrailingPositions(getCurrentTrailingStop(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(), PanicTimeFrame, PanicPIPS)), TrailingStepS, getCurrentRetrace(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(), PanicTimeFrame, PanicPIPS)));
+                    TrailingPositions(getCurrentTrailingStop(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanicTrade(OrderTicket(), PanicTimeFrame, PanicPIPS)), TrailingStepS, getCurrentRetrace(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(), PanicTimeFrame, PanicPIPS)));
                 } else if (isVeryShort(OrderMagicNumber())) {
-                    TrailingPositions(getCurrentTrailingStop(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(), PanicTimeFrame, PanicPIPS)), TrailingStepVS, getCurrentRetrace(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(), PanicTimeFrame, PanicPIPS)));
+                    TrailingPositions(getCurrentTrailingStop(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanicTrade(OrderTicket(), PanicTimeFrame, PanicPIPS)), TrailingStepVS, getCurrentRetrace(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(), PanicTimeFrame, PanicPIPS)));
                 } else if (isUltraShort(OrderMagicNumber())) {
-                    TrailingPositions(getCurrentTrailingStop(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(), PanicTimeFrame, PanicPIPS)), TrailingStepUS, getCurrentRetrace(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(), PanicTimeFrame, PanicPIPS)));
+                    TrailingPositions(getCurrentTrailingStop(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanicTrade(OrderTicket(), PanicTimeFrame, PanicPIPS)), TrailingStepUS, getCurrentRetrace(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(), PanicTimeFrame, PanicPIPS)));
                 } else if (isInstant(OrderMagicNumber())) {
-                    TrailingPositions(getCurrentTrailingStop(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(), PanicTimeFrame, PanicPIPS)), TrailingStepI, getCurrentRetrace(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(), PanicTimeFrame, PanicPIPS)));
+                    TrailingPositions(getCurrentTrailingStop(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanicTrade(OrderTicket(), PanicTimeFrame, PanicPIPS)), TrailingStepI, getCurrentRetrace(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(), PanicTimeFrame, PanicPIPS)));
                 }
             }
         }
@@ -261,25 +261,29 @@ void start()
 void TrailingPositions(int TrailingStop,int TrailingStep,double RetraceFactor)
   {
    double pBid,pAsk,pp,pDiff,pRef,pStep,pRetraceTrail,pDirectTrail;
-//----
-
    double RetraceValue=RetraceFactor;
-   if(beVerbose) Print("Retrace factor is: ", RetraceFactor , " for ", OrderTicket());
    pp=MarketInfo(OrderSymbol(),MODE_POINT);
-   if(beVerbose) Print(OrderSymbol()," Point value is: ",pp);
    pDirectTrail=TrailingStop*pp;
-   if(beVerbose) Print(OrderTicket()," DirectTrail value is: ",pDirectTrail);
    pStep=TrailingStep*pp;
-   if(beVerbose) Print(OrderTicket()," Step value is: ",pStep);
+
+    if (beVerbose) {
+        Print("Retrace factor is: ", RetraceFactor, " for ", OrderTicket());
+        Print(OrderSymbol(), " Point value is: ", pp);
+        Print(OrderTicket(), " Step value is: ", pStep);
+        Print(OrderTicket(), " DirectTrail value is: ", pDirectTrail);
+    }
 
    if(OrderType()==OP_BUY)
      {
       pBid=MarketInfo(OrderSymbol(),MODE_BID);
       pDiff=pBid-OrderOpenPrice();
       pRetraceTrail=pDiff>pDirectTrail ?(pDiff-pDirectTrail)*RetraceValue : 0;
-      if(beVerbose) Print(OrderTicket()," RetraceTrail value is: ",pRetraceTrail);
       pRef=pBid-pDirectTrail-pRetraceTrail;
-      if(beVerbose) Print(OrderTicket()," Ref value is: ",pRef);
+
+        if (beVerbose) {
+            Print(OrderTicket(), " RetraceTrail value is: ", pRetraceTrail);
+            Print(OrderTicket(), " Ref value is: ", pRef);
+        }
 
       if(pRef-OrderOpenPrice()>0)
         {// order is in profit.
