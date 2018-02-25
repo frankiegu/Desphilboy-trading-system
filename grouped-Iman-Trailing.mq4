@@ -1,44 +1,49 @@
 // simple trailing stop
 #property copyright "Iman Dezfuly"
 #property link      "http://www.Iman.ir"
-#define version      "20180102"
+#define version      "20180210"
 #include "./desphilboy.mqh"
 
 extern bool ManageAllPairs = true;
-extern int TrailingStopUL = 600, TrailingStopVL = 550, TrailingStopL = 500, TrailingStopM = 450,
-TrailingStopS = 400, TrailingStopVS = 350, TrailingStopUS = 300, TrailingStopI = 250;
+extern int TrailingStopUL = 1200, TrailingStopVL = 1100, TrailingStopL = 1000, TrailingStopM = 900,
+TrailingStopS = 800, TrailingStopVS = 700, TrailingStopUS = 600, TrailingStopI = 500;
 
-extern int TrailingStepUL = 50, TrailingStepVL = 50, TrailingStepL = 50, TrailingStepM = 40,
-TrailingStepS = 30, TrailingStepVS = 30, TrailingStepUS = 30, TrailingStepI = 30;
+extern int TrailingStepUL = 80, TrailingStepVL = 80, TrailingStepL = 70, TrailingStepM = 70,
+TrailingStepS = 70, TrailingStepVS = 60, TrailingStepUS = 60, TrailingStepI = 60;
 
-extern FiboRetrace RetraceFactorUL = WholeRetrace, RetraceFactorVL = WholeRetrace, RetraceFactorL = AlmostWholeRetrace, RetraceFactorM = MaxRetrace,
-RetraceFactorS = HalfRetrace, RetraceFactorVS = LowRetrace, RetraceFactorUS = MinRetrace, RetraceFactorI = PaniclyRetrace;
+extern FiboRetrace RetraceFactorUL = DoubleRetrace, RetraceFactorVL = OneAndMaxRetrace, RetraceFactorL = OneAndHalfRetrace, RetraceFactorM = OneAndLowRetrace,
+RetraceFactorS = OneAndMinRetrace, RetraceFactorVS = MoreRetrace, RetraceFactorUS = WholeRetrace, RetraceFactorI = MaxRetrace;
 
-extern LifeTimes TimeFrameUL = ThirtyTwoHours, TimeFrameVL = SixteenHours, TimeFrameL = EightHours, TimeFrameM = FourHours,
-TimeFrameS = TwoHours, TimeFrameVS = OneHour, TimeFrameUS = HalfHour, TimeFrameI = Quarter;
+extern LifeTimes TimeFrameUL = FiveDays, TimeFrameVL = ThreeDays, TimeFrameL = TwoDays, TimeFrameM = OneDay,
+TimeFrameS = SixteenHours, TimeFrameVS = TwelveHours, TimeFrameUS = EightHours, TimeFrameI = SixHours;
 extern bool ContinueLifeTimeAfterFirstSL = true;
 extern ENUM_TIMEFRAMES PanicTimeFrame = PERIOD_M15;
 extern int PanicPIPS = 1000;
 extern int PanicStop = 50;
 extern FiboRetrace PanicRetrace = PaniclyRetrace;
-extern bool SpikeTrading = false;
+extern bool SpikeTrading = true;
 extern int SpikeHeight = 1500;
-extern Groups SpikeTradesGroup = InstantTerm;
+extern Groups SpikeTradesGroup = UltraLongTerm;
 extern ENUM_TIMEFRAMES SpikeTimeFrame = PERIOD_H1;
 
 extern bool ActiveTrading = false;
-extern int ActiveTradingGap = 1500;
-extern Groups ActiveTradesGroup = UltraShortTerm;
+extern int ActiveTradingGap = 2500;
+extern Groups ActiveTradesGroup = UltraLongTerm;
 
 extern int SpikeAndActiveTradeSpacing = 150;
 extern int ActiveAndSpikeTradesDistance = 200;
 extern double ActiveAndSpikeLots = 0.01;
 extern int ActiveAndSpikeTradeStopLoss = 0;
 extern int MaximumNetPositions = 3;
-extern int MaximumAbsolutePositions = 4;
+extern int MaximumAbsolutePositions = 6;
 
-extern string AllowedPairNames = "USDJPY,GBPJPY,EURJPY,USDCAD,AUDUSD,XAUUSD";
-extern bool DeleteNotAllowedPairsOrders = true;
+extern bool iARVHeuristic = true;
+extern bool NetPositionsHeuristic = true;
+extern bool ReserveOpositeForLoosingPositions=true;
+
+extern string AccountPairNames = "USDJPY,GBPJPY,EURJPY,USDCAD,AUDUSD,XAUUSD";
+extern bool DeletePositionsOfOtherPairs = true;
+
 extern int TimerSeconds = 10;
 extern bool ShowLoopingSpeed = false;
 extern bool verboseLogging = false;
@@ -111,7 +116,7 @@ int init() {
     Print("LifeTimes(UL,VL,L,M,S,VS,US,I):", TimeFrameUL, ",", TimeFrameVL, ",", TimeFrameL, ",", TimeFrameM, ",", TimeFrameS, ",", TimeFrameVS, ",", TimeFrameUS, ",", TimeFrameI);
 
     string pairNames[100];
-    int numPairs = StringSplit(AllowedPairNames, ',', pairNames);
+    int numPairs = StringSplit(AccountPairNames, ',', pairNames);
     for (int i = 0; i < numPairs; ++i) {
         Print("Pair ", i, " name is: ", pairNames[i]);
     }
@@ -127,8 +132,8 @@ int init() {
 //|                                                                  |
 //+------------------------------------------------------------------+
 void OnTimer() {
-    if (DeleteNotAllowedPairsOrders) {
-        filterOutTradesNotIn(AllowedPairNames);
+    if (DeletePositionsOfOtherPairs) {
+        filterOutTradesNotIn(AccountPairNames);
     }
 
     if (ActiveTrading && (loopCounter % 20) == 0) {
@@ -137,7 +142,7 @@ void OnTimer() {
         int numPairs = 0;
 
         if (ManageAllPairs) {
-            numPairs = StringSplit(AllowedPairNames, ',', pairNames);
+            numPairs = StringSplit(AccountPairNames, ',', pairNames);
         } else {
             numPairs = 1;
             pairNames[0] = Symbol();
@@ -165,7 +170,7 @@ void OnTimer() {
 
     if (ShowVolumeBallances) {
         string pairNames[100];
-        int numPairs = StringSplit(AllowedPairNames, ',', pairNames);
+        int numPairs = StringSplit(AccountPairNames, ',', pairNames);
         for (int i = 0; i < numPairs; ++i) {
             Print("Volume of all sells for ", pairNames[i], " is:", getVolBallance(pairNames[i], OP_SELL));
             Print("Volume of all sellstops for ", pairNames[i], " is:", getVolBallance(pairNames[i], OP_SELLSTOP));
@@ -184,28 +189,15 @@ void OnTimer() {
 //+------------------------------------------------------------------+
 //| expert start function                                            |
 //+------------------------------------------------------------------+
-void start()
-  {
+void start() {
+    if(loopCounter % 23 == 0) {
+      pairsCount = updatePairInfoCache(AccountPairNames);   
+    }
+
     for (int i = 0; i < OrdersTotal(); i++) {
         if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) {
             if ((ManageAllPairs || OrderSymbol() == Symbol()) && (OrderType() == OP_BUY || OrderType() == OP_SELL)) {
-                if (isUltraLongTerm(OrderMagicNumber())) {
-                    TrailingPositions(getCurrentTrailingStop(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(), PanicTimeFrame, PanicPIPS)), TrailingStepUL, getCurrentRetrace(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(), PanicTimeFrame, PanicPIPS)));
-                } else if (isVeryLongTerm(OrderMagicNumber())) {
-                    TrailingPositions(getCurrentTrailingStop(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(), PanicTimeFrame, PanicPIPS)), TrailingStepVL, getCurrentRetrace(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(), PanicTimeFrame, PanicPIPS)));
-                } else if (isLongTerm(OrderMagicNumber())) {
-                    TrailingPositions(getCurrentTrailingStop(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(), PanicTimeFrame, PanicPIPS)), TrailingStepL, getCurrentRetrace(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(), PanicTimeFrame, PanicPIPS)));
-                } else if (isMediumTerm(OrderMagicNumber())) {
-                    TrailingPositions(getCurrentTrailingStop(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(), PanicTimeFrame, PanicPIPS)), TrailingStepM, getCurrentRetrace(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(), PanicTimeFrame, PanicPIPS)));
-                } else if (isShortTerm(OrderMagicNumber())) {
-                    TrailingPositions(getCurrentTrailingStop(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(), PanicTimeFrame, PanicPIPS)), TrailingStepS, getCurrentRetrace(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(), PanicTimeFrame, PanicPIPS)));
-                } else if (isVeryShort(OrderMagicNumber())) {
-                    TrailingPositions(getCurrentTrailingStop(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(), PanicTimeFrame, PanicPIPS)), TrailingStepVS, getCurrentRetrace(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(), PanicTimeFrame, PanicPIPS)));
-                } else if (isUltraShort(OrderMagicNumber())) {
-                    TrailingPositions(getCurrentTrailingStop(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(), PanicTimeFrame, PanicPIPS)), TrailingStepUS, getCurrentRetrace(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(), PanicTimeFrame, PanicPIPS)));
-                } else if (isInstant(OrderMagicNumber())) {
-                    TrailingPositions(getCurrentTrailingStop(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(), PanicTimeFrame, PanicPIPS)), TrailingStepI, getCurrentRetrace(OrderTicket(), TrailingInfo, ContinueLifeTimeAfterFirstSL, isPanic(OrderSymbol(), PanicTimeFrame, PanicPIPS)));
-                }
+                trailPosition(OrderTicket(), ContinueLifeTimeAfterFirstSL, PanicTimeFrame, PanicPIPS, iARVHeuristic, NetPositionsHeuristic, ReserveOpositeForLoosingPositions);
             }
         }
     }
@@ -215,7 +207,7 @@ void start()
         int numPairs = 0;
 
         if (ManageAllPairs) {
-            numPairs = StringSplit(AllowedPairNames, ',', pairNames);
+            numPairs = StringSplit(AccountPairNames, ',', pairNames);
         } else {
             numPairs = 1;
             pairNames[0] = Symbol();
@@ -224,12 +216,24 @@ void start()
         for (int i = 0; i < numPairs; ++i) {
             if (CreateBuysCondition(pairNames[i], ActiveTradingGap, MaximumNetPositions * ActiveAndSpikeLots, MaximumAbsolutePositions * ActiveAndSpikeLots)) {
                 Print("Creating active trading buystops on ", pairNames[i]);
-                appendBuyStops(pairNames[i], ActiveAndSpikeTradesDistance, SpikeAndActiveTradeSpacing, ActiveAndSpikeLots, ActiveAndSpikeTradeStopLoss, ActiveTradesGroup);
+                appendBuyStops(
+                    pairNames[i],
+                    ActiveAndSpikeTradesDistance,
+                    SpikeAndActiveTradeSpacing,
+                    ActiveAndSpikeLots,
+                    ActiveAndSpikeTradeStopLoss,
+                    ActiveTradesGroup);
             }
 
             if (CreateSellsCondition(pairNames[i], ActiveTradingGap, MaximumNetPositions * ActiveAndSpikeLots, MaximumAbsolutePositions * ActiveAndSpikeLots)) {
                 Print("Creating active trading sellstops on ", pairNames[i]);
-                appendSellStops(pairNames[i], ActiveAndSpikeTradesDistance, SpikeAndActiveTradeSpacing, ActiveAndSpikeLots, ActiveAndSpikeTradeStopLoss, ActiveTradesGroup);
+                appendSellStops(
+                    pairNames[i],
+                    ActiveAndSpikeTradesDistance,
+                    SpikeAndActiveTradeSpacing,
+                    ActiveAndSpikeLots,
+                    ActiveAndSpikeTradeStopLoss,
+                    ActiveTradesGroup);
             }
         }
     }
@@ -240,7 +244,7 @@ void start()
         int numPairs = 0;
 
         if (ManageAllPairs) {
-            numPairs = StringSplit(AllowedPairNames, ',', pairNames);
+            numPairs = StringSplit(AccountPairNames, ',', pairNames);
         } else {
             numPairs = 1;
             pairNames[0] = Symbol();
@@ -248,81 +252,18 @@ void start()
 
         for (int i = 0; i < numPairs; ++i) {
             if (isPanic(pairNames[i], SpikeTimeFrame, SpikeHeight)) {
-                appendTradesIfAppropriate(pairNames[i], ActiveAndSpikeTradesDistance, SpikeAndActiveTradeSpacing, SpikeHeight, ActiveAndSpikeLots, MaximumNetPositions * ActiveAndSpikeLots, MaximumAbsolutePositions * ActiveAndSpikeLots, ActiveAndSpikeTradeStopLoss, SpikeTradesGroup);
+                appendTradesIfAppropriate(
+                    pairNames[i],
+                    ActiveAndSpikeTradesDistance,
+                    SpikeAndActiveTradeSpacing,
+                    SpikeHeight,
+                    ActiveAndSpikeLots,
+                    MaximumNetPositions * ActiveAndSpikeLots,
+                    MaximumAbsolutePositions * ActiveAndSpikeLots,
+                    ActiveAndSpikeTradeStopLoss, SpikeTradesGroup);
             }
         }
     }
 
-   loopCounter++;
-  }
-//+------------------------------------------------------------------+
-//|This function trails the position which is selected.                        |
-//+------------------------------------------------------------------+
-void TrailingPositions(int TrailingStop,int TrailingStep,double RetraceFactor)
-  {
-   double pBid,pAsk,pp,pDiff,pRef,pStep,pRetraceTrail,pDirectTrail;
-//----
-
-   double RetraceValue=RetraceFactor;
-   if(beVerbose) Print("Retrace factor is: ", RetraceFactor , " for ", OrderTicket());
-   pp=MarketInfo(OrderSymbol(),MODE_POINT);
-   if(beVerbose) Print(OrderSymbol()," Point value is: ",pp);
-   pDirectTrail=TrailingStop*pp;
-   if(beVerbose) Print(OrderTicket()," DirectTrail value is: ",pDirectTrail);
-   pStep=TrailingStep*pp;
-   if(beVerbose) Print(OrderTicket()," Step value is: ",pStep);
-
-   if(OrderType()==OP_BUY)
-     {
-      pBid=MarketInfo(OrderSymbol(),MODE_BID);
-      pDiff=pBid-OrderOpenPrice();
-      pRetraceTrail=pDiff>pDirectTrail ?(pDiff-pDirectTrail)*RetraceValue : 0;
-      if(beVerbose) Print(OrderTicket()," RetraceTrail value is: ",pRetraceTrail);
-      pRef=pBid-pDirectTrail-pRetraceTrail;
-      if(beVerbose) Print(OrderTicket()," Ref value is: ",pRef);
-
-      if(pRef-OrderOpenPrice()>0)
-        {// order is in profit.
-         if((OrderStopLoss()!=0.0 && pRef-OrderStopLoss()>pStep && pRef-OrderOpenPrice()>pStep) || (OrderStopLoss()==0.0 && pRef-OrderOpenPrice()>pStep))
-           {
-            ModifyStopLoss(pRef);
-            return;
-           }
-        }
-     }
-
-   if(OrderType()==OP_SELL)
-     {
-      pAsk=MarketInfo(OrderSymbol(),MODE_ASK);
-      pDiff=OrderOpenPrice()-pAsk;
-      pRetraceTrail=pDiff>pDirectTrail ?(pDiff-pDirectTrail)*RetraceValue : 0;
-      pRef=pAsk+pDirectTrail+pRetraceTrail;
-
-      if(OrderOpenPrice()-pRef>0)
-        {// order is in profit.
-         if((OrderStopLoss()!=0.0 && OrderStopLoss()-pRef>pStep && OrderOpenPrice()-pRef>pStep) || (OrderStopLoss()==0.0 && OrderOpenPrice()-pRef>pStep))
-           {
-            ModifyStopLoss(pRef);
-            return;
-           }
-        }
-     }
-  }
-//+------------------------------------------------------------------+
-//|   this modifies a selected order and chages its stoploss                                      |
-//|
-//|   Params: ldStopLoss  , double is the new value for stoploss
-//+------------------------------------------------------------------+
-void ModifyStopLoss(double ldStopLoss)
-  {
-   bool fm;
-   fm=OrderModify(OrderTicket(),OrderOpenPrice(),ldStopLoss,OrderTakeProfit(),0,CLR_NONE);
-
-   if(fm)
-     {
-      Print("Order ",OrderTicket()," modified to Stoploss=",ldStopLoss," group:",getGroupName(OrderMagicNumber()));
-        } else{
-      Print("could not modify order:",OrderTicket()," group:",getGroupName(OrderMagicNumber()));
-     }
-  }
-//+------------------------------------------------------------------+
+    loopCounter++;
+}

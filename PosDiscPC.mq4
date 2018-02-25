@@ -22,20 +22,18 @@ extern double BuyLots = 0.01;
 extern double SellLots = 0.01;
 extern double BuyStartingPrice = 0.0;
 extern double SellStartingPrice = 0.0;
-extern int TradesDistance = 70;
+extern int TradesDistance = 150;
 
+extern string PIPsToStartI = "8,16";
+extern string PIPsToStartUS = "7,15";
+extern string PIPsToStartVS = "6,14";
+extern string PIPsToStartS = "5,13";
+extern string PIPsToStartM = "4,12";
+extern string PIPsToStartL = "3,11";
+extern string PIPsToStartVL = "2,10";
+extern string PIPsToStartUL = "1,9";
 
-
-extern string PIPsToStartI = "1,2,4,5,7,8,10,11,13,14,16,17,19,20";
-extern string PIPsToStartUS = "3";
-extern string PIPsToStartVS = "21";
-extern string PIPsToStartS = "18";
-extern string PIPsToStartM = "15";
-extern string PIPsToStartL = "12";
-extern string PIPsToStartVL = "9";
-extern string PIPsToStartUL = "6";
-
-extern int TradeSpacing = 60;
+extern int TradeSpacing = 90;
 
 extern bool CreateBuys = true;
 extern bool CreateSells = true;
@@ -59,7 +57,7 @@ extern int Slippage = 50;
 extern int TradesExpireAfterHours = 0;
 extern double BuyTradesDistanceCoefficient = 1.0;
 extern double SellTradesDistanceCoefficient = 1.0;
-extern int InitialPIPsToStart = 50;
+extern int InitialPIPsToStart = 250;
 
 static bool askUserToDoPositions = false;
 static bool doPositionsOnce = false;
@@ -572,8 +570,10 @@ int ChartWidthInPixels(const long chart_ID = 0) {
 }
 
 int clearPositions(bool all = false, int slippage = 35, bool buys = true, bool sells = true) {
+    int loopTimeout = 30;
+    int clearLoopCounter = 0;
     bool foundAnyTrades = true;
-    while (foundAnyTrades) {
+    while (foundAnyTrades && clearLoopCounter < loopTimeout) {
         foundAnyTrades = false;
         for (int i = 0; i < OrdersTotal(); i++) {
 
@@ -603,6 +603,7 @@ int clearPositions(bool all = false, int slippage = 35, bool buys = true, bool s
                 }
             }
         }
+        clearLoopCounter++;
     }
 
     return 0;
