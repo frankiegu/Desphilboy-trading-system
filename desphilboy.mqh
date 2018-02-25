@@ -595,6 +595,8 @@ double getCurrentRetrace(int tradeTicket, GroupIds orderGroup, bool lifePeriodEf
 double lifeTimeHeuristic(datetime orderOpenTime, GroupIds orderGroupId) {
     double minutesElapsed = getMinutesOld(orderOpenTime);
     double lifeTimeInMinutes = TrailingInfo[orderGroupId][LifePeriod];
+    
+    // Print("lifeTimeHeuristic: orderOpenTime=",orderOpenTime, " minutesElapsed=", minutesElapsed, " lifeTime:", lifeTimeInMinutes, " groupId:", orderGroupId); 
 
     if (lifeTimeInMinutes == 0) {
         lifeTimeInMinutes = 30;
@@ -992,7 +994,7 @@ double calcHuristics(int ticketNumber, string symbol, int ordertype, int magicNu
     double netPosHeuVal = 1.0;
     double timeHeuVal = 1.0;
 
-    GroupIds grpId = calculateGroupId(ticketNumber, magicNumber, opositeLoosingTrades);
+    GroupIds grpId = calculateGroupId(ticketNumber, magicNumber, opositeLoosingTrades, symbol);
 
     int lifetime = TrailingInfo[grpId][LifePeriod];
 
@@ -1008,7 +1010,8 @@ bool isReservedTrade(int tradeTicket, string symbol) {
     int index = getPairInfoIndex(symbol);
     if(index== -1) return false;
 
-    bool result = (isInArray(tradeTicket, pairInfoCache[index].reservedOpositeBuys, pairInfoCache[index].reservedBuysCount) || isInArray(tradeTicket, pairInfoCache[index].reservedOpositeSells, pairInfoCache[index].reservedSellsCount));
+    bool result = (isInArray(tradeTicket, pairInfoCache[index].reservedOpositeBuys, pairInfoCache[index].reservedBuysCount) 
+    || isInArray(tradeTicket, pairInfoCache[index].reservedOpositeSells, pairInfoCache[index].reservedSellsCount));
 
     return result;
 }
@@ -1022,11 +1025,12 @@ bool isInArray(int ticketTofind, int & ticketArray[], int arrayCount) {
 GroupIds calculateGroupId(int tradeTicket, int magicNumber, bool opositeReserveEnabled = true, string symbol="") {
    GroupIds realGroup=getGroupId(magicNumber);
 
-    if (opositeReserveEnabled && isReservedTrade(tradeTicket, symbol) && realGroup > gid_UltraLongTerm) {
-
+    if (opositeReserveEnabled && isReservedTrade(tradeTicket, symbol) && realGroup >= gid_UltraLongTerm) {
     if(beVerbose) Print(tradeTicket, " is reserved, real group is ",realGroup," calculated group is UltraLongTerm");
+    
     return gid_UltraLongTerm;
     }
+    
     return realGroup;
 }
 //+------------------------------------------------------------------+
