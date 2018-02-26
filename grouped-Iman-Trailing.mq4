@@ -1,7 +1,7 @@
 // simple trailing stop
 #property copyright "Iman Dezfuly"
 #property link      "http://www.Iman.ir"
-#define version      "20180210"
+#define version      "20180220"
 #include "./desphilboy.mqh"
 
 extern bool ManageAllPairs = true;
@@ -11,11 +11,11 @@ TrailingStopS = 800, TrailingStopVS = 700, TrailingStopUS = 600, TrailingStopI =
 extern int TrailingStepUL = 80, TrailingStepVL = 80, TrailingStepL = 70, TrailingStepM = 70,
 TrailingStepS = 70, TrailingStepVS = 60, TrailingStepUS = 60, TrailingStepI = 60;
 
-extern FiboRetrace RetraceFactorUL = DoubleRetrace, RetraceFactorVL = OneAndMaxRetrace, RetraceFactorL = OneAndHalfRetrace, RetraceFactorM = OneAndLowRetrace,
-RetraceFactorS = OneAndMinRetrace, RetraceFactorVS = MoreRetrace, RetraceFactorUS = WholeRetrace, RetraceFactorI = MaxRetrace;
+extern FiboRetrace RetraceFactorUL = Retrace105, RetraceFactorVL = WholeRetrace, RetraceFactorL = Retrace95, RetraceFactorM = Retrace90,
+RetraceFactorS = Retrace85, RetraceFactorVS = Retrace80, RetraceFactorUS = Retrace75, RetraceFactorI = Retrace70;
 
 extern LifeTimes TimeFrameUL = FiveDays, TimeFrameVL = ThreeDays, TimeFrameL = TwoDays, TimeFrameM = OneDay,
-TimeFrameS = SixteenHours, TimeFrameVS = TwelveHours, TimeFrameUS = EightHours, TimeFrameI = SixHours;
+TimeFrameS = TwentyHours, TimeFrameVS = SixteenHours, TimeFrameUS = TwelveHours, TimeFrameI = EightHours;
 extern bool ContinueLifeTimeAfterFirstSL = true;
 extern ENUM_TIMEFRAMES PanicTimeFrame = PERIOD_M15;
 extern int PanicPIPS = 1000;

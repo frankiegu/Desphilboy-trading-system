@@ -100,16 +100,27 @@ enum LifeTimes {
     FourHours = 240,
     SixHours = 360,
     EightHours = 480,
+    TenHours = 600,
     TwelveHours = 720,
     SixteenHours = 960,
+    TwentyHours = 1200,
     OneDay = 1440,
+    ThirtyHours = 1800,
     ThirtyTwoHours = 1920,
+    OneAndHalfDay = 2160,
+    FourtyHours = 2400,
     TwoDays = 2880,
+    TwoDaysAnd8Hours = 3360,
     SixtyFourHours = 3840,
     ThreeDays = 4320,
+    FourDays = 5760,
     FiveDays = 7200,
     SevenDays = 10080,
-    TenDays = 14400
+    TenDays = 14400,
+    TwelveDays = 17280,
+    FortNight = 20160,
+    FifteenDays = 21600
+    
 };
 
 
@@ -123,14 +134,17 @@ enum FiboRetrace {
     LowRetrace = 3,
     HalfRetrace = 4,
     MaxRetrace = 5,
-    AlmostWholeRetrace=6,
-    WholeRetrace=7,
-    MoreRetrace=8,
-    OneAndMinRetrace=9,
-    OneAndLowRetrace=10,
-    OneAndHalfRetrace=11,
-    OneAndMaxRetrace=12,
-    DoubleRetrace=13,
+    Retrace65=6,
+    Retrace70=7,
+    Retrace75=8,
+    Retrace80=9,
+    Retrace85=10,
+    Retrace90=11,
+    Retrace95=12,
+    WholeRetrace=13,
+    Retrace105=14,
+    Retrace110=15,
+    Retrace115=16
 };
 
 double Fibo[] = {
@@ -147,7 +161,10 @@ double Fibo[] = {
     0.85,
     0.90,
     0.95,
-    1.0
+    1.0,
+    1.05,
+    1.1,
+    1.15
 };
 
 struct pairInfo {
