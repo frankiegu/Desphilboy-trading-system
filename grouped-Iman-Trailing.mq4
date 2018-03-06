@@ -1,7 +1,7 @@
 // simple trailing stop
 #property copyright "Iman Dezfuly"
 #property link      "http://www.Iman.ir"
-#define version      "20180220"
+#define version      "20180305"
 #include "./desphilboy.mqh"
 
 extern bool ManageAllPairs = true;
@@ -38,8 +38,11 @@ extern int MaximumNetPositions = 3;
 extern int MaximumAbsolutePositions = 6;
 
 extern bool iARVHeuristic = true;
+extern bool UnsafeNetPositionsHeuristic = true;
 extern bool NetPositionsHeuristic = true;
 extern bool ReserveOpositeForLoosingPositions=true;
+extern bool HammerCandleHeuristic = true;
+extern bool DodgyCandleHeuroistics = true;
 
 extern string AccountPairNames = "USDJPY,GBPJPY,EURJPY,USDCAD,AUDUSD,XAUUSD";
 extern bool DeletePositionsOfOtherPairs = true;
@@ -197,7 +200,15 @@ void start() {
     for (int i = 0; i < OrdersTotal(); i++) {
         if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) {
             if ((ManageAllPairs || OrderSymbol() == Symbol()) && (OrderType() == OP_BUY || OrderType() == OP_SELL)) {
-                trailPosition(OrderTicket(), ContinueLifeTimeAfterFirstSL, PanicTimeFrame, PanicPIPS, iARVHeuristic, NetPositionsHeuristic, ReserveOpositeForLoosingPositions);
+                trailPosition(OrderTicket()
+                , ContinueLifeTimeAfterFirstSL
+                , PanicTimeFrame, PanicPIPS
+                , iARVHeuristic
+                , UnsafeNetPositionsHeuristic
+                , NetPositionsHeuristic
+                , HammerCandleHeuristic
+                , DodgyCandleHeuroistics
+                , ReserveOpositeForLoosingPositions);
             }
         }
     }

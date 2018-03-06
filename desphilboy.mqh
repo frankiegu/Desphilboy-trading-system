@@ -1,4 +1,4 @@
-//version  20171202
+//version  20180302
 // heaer file for desphilboy
 //+------------------------------------------------------------------+
 //|                                                   desphilboy.mqh |
@@ -195,9 +195,10 @@ int updatePairInfoCache(string pairNamesCommaSeparated) {
 
     for (int i = 0; i < numPairs; ++i) {
         pairInfoCache[i].pairName = pairNames[i];
-        pairInfoCache[i].netPosition = getNetPosition(pairInfoCache[i].pairName);
+       
         pairInfoCache[i].buyLots = getVolBallance(pairInfoCache[i].pairName, OP_BUY);
         pairInfoCache[i].sellLots = getVolBallance(pairInfoCache[i].pairName, OP_SELL);
+        pairInfoCache[i].netPosition =  pairInfoCache[i].buyLots  - pairInfoCache[i].sellLots;
         pairInfoCache[i].unsafeNetPosition = getUnsafeNetPosition(pairInfoCache[i].pairName);
         pairInfoCache[i].unsafeBuys = getUnsafeBuys(pairInfoCache[i].pairName);
         pairInfoCache[i].unsafeSells = getUnsafeSells(pairInfoCache[i].pairName);
@@ -286,6 +287,7 @@ double arvIndicator(string symbol, int timeframe, int longCandlesCount, int shor
     return (shortRange / longRange);
 }
 
+//Average relative volatility
 double getARVHuristic(string tradeSymbol, int positionLifeTime) {
     double avrIndicatorValue = arvIndicator(tradeSymbol, positionLifeTime, LONGARVAVERAGECANDLES, SHORTARVAVERAGECANDLES);
 
@@ -642,12 +644,130 @@ double unsafeBalanceHeuristic(int ticketNumber, string symbol, int orderType, bo
       return 1;
    }
    
-   if ((orderType == OP_BUY && pairInfoCache[pairIndex].unsafeNetPosition > 0.008) || (orderType == OP_SELL && pairInfoCache[pairIndex].unsafeNetPosition < -0.008)) {
+   if ((orderType == OP_BUY && pairInfoCache[pairIndex].netPosition > 0.008) || (orderType == OP_SELL && pairInfoCache[pairIndex].netPosition < -0.008)) {
         return 0.8;
     }
 
     return 1;
 }
+
+double balanceHeuristic(int ticketNumber, string symbol, int orderType, bool tradeReservationEnabled) {
+    int pairIndex = getPairInfoIndex(symbol);
+    if (pairIndex == -1) { // reurn a safe value because there is no pair info
+        return 1;
+    }
+
+    if ((orderType == OP_BUY && pairInfoCache[pairIndex].netPosition < 0) || (orderType == OP_SELL && pairInfoCache[pairIndex].netPosition > 0)) {
+        return 1.33;
+    }
+
+   if(tradeReservationEnabled && isReservedTrade(ticketNumber, symbol)) {
+      return 1;
+   }
+   
+   if ((orderType == OP_BUY && pairInfoCache[pairIndex].netPosition > 0.008) || (orderType == OP_SELL && pairInfoCache[pairIndex].netPosition < -0.008)) {
+        return 0.9;
+    }
+
+    return 1;
+}
+
+double averageCandleMaxMinLength(string symbol, ENUM_TIMEFRAMES timeFrame, int count) {
+   if( count ==0) return 0;
+   
+   double sum = 0;
+   for(int i=0; i<count; ++i) {
+      sum = iHigh(symbol, timeFrame, i) -  iLow(symbol, timeFrame, i) + sum;
+   }
+   
+   return (sum/count);
+}
+
+double hammerness(string symbol, ENUM_TIMEFRAMES timeFrame, int shift) {
+   double average100 = averageCandleMaxMinLength(symbol, timeFrame, 100);
+   if(average100 == 0) return 0;  //avoid divide by 0
+   
+   double relationalStrength = (iHigh(symbol,timeFrame,shift) - iLow(symbol,timeFrame,shift))/average100;
+   if(relationalStrength == 0) return 0;  //candle is very weak, or error,avoid divide by 0
+   
+   double averageVol =(double) (iVolume(symbol, timeFrame, shift +1) + iVolume( symbol, timeFrame, shift + 2))/2;
+    if(averageVol == 0) return 0;  //avoid divide by 0
+    
+    double relationalVolume =  iVolume( symbol, timeFrame, shift)/averageVol;
+    
+    double candleMovement = MathAbs(iClose(symbol, timeFrame, shift) - iOpen(symbol, timeFrame, shift));
+    if(candleMovement == 0) candleMovement = 0.0001;   // put a minimum to avoid divide by zero
+    double concentration = MathAbs((relationalStrength * average100)/candleMovement);
+    
+    double lowertail = MathMin(iOpen(symbol, timeFrame, shift), iClose(symbol,timeFrame,shift)) - iLow(symbol, timeFrame, shift) ;
+    double uppertail =  iHigh(symbol, timeFrame, shift) - MathMax(iOpen(symbol, timeFrame, shift), iClose(symbol,timeFrame,shift)) ;
+     
+    double bullishness = (lowertail - uppertail) / candleMovement;
+    // bullishness can be negative as well;
+    
+    return bullishness * concentration * relationalVolume * relationalStrength; 
+
+}
+
+double dodginess(string symbol, ENUM_TIMEFRAMES timeFrame, int shift) {
+   double average100 = averageCandleMaxMinLength(symbol, timeFrame, 100);
+   if(average100 == 0) return 0;  //avoid divide by 0
+   
+   double relationalStrength = (iHigh(symbol,timeFrame,shift) - iLow(symbol,timeFrame,shift))/average100;
+   if(relationalStrength == 0) return 0;  //candle is very weak, or error,avoid divide by 0
+   
+   double averageVol =(double) (iVolume(symbol, timeFrame, shift +1) + iVolume( symbol, timeFrame, shift + 2))/2;
+    if(averageVol == 0) return 0;  //avoid divide by 0
+    
+    double relationalVolume =  iVolume( symbol, timeFrame, shift)/averageVol;
+    
+    double candleMovement = MathAbs(iClose(symbol, timeFrame, shift) - iOpen(symbol, timeFrame, shift));
+    if(candleMovement == 0) candleMovement = 0.0001;   // put a minimum to avoid divide by zero
+    double concentration = MathAbs((relationalStrength * average100)/candleMovement);     
+   
+    return concentration * relationalVolume * relationalStrength; 
+
+}
+
+
+double hammerHeuristic(int ticketNumber, string symbol, int orderType, bool tradeReservationEnabled) {
+   
+   double effectiveHammerness = ( hammerness(symbol, PERIOD_W1, 1) *2 + hammerness(symbol, PERIOD_D1, 1)) / 3;
+
+   if(effectiveHammerness > 6 ) {
+       if (orderType == OP_BUY ) return 1.2;
+         return 0.8;
+      }
+    
+   if(effectiveHammerness > - 6 ) {
+       return 1;
+    }
+    
+   if (orderType == OP_BUY ) return 0.8;
+ 
+   return 1.2;
+}
+
+double dodgyHeuristic(int ticketNumber, string symbol, int orderType, bool tradeReservationEnabled) {
+   double effectiveDodginess = dodginess(symbol, PERIOD_D1, 1);
+   
+   bool isABullDodgi = iOpen(symbol,PERIOD_W1,1) - iClose(symbol, PERIOD_W1, 1) > 0;
+
+   if(effectiveDodginess >8 && isABullDodgi ) {
+       if (orderType == OP_BUY ) return 1.1;
+         return 0.8;
+      }
+      
+   if(effectiveDodginess >8 && !isABullDodgi ) {
+       if (orderType == OP_BUY ) return 0.8;
+         return 1.1;
+      }
+    
+   return 1;
+}
+
+
+
 
 int getMinutesOld(datetime creationTime) {
     int diff = (int)(TimeCurrent() - creationTime);
@@ -1006,20 +1126,35 @@ bool clearSpaceForPosition(double price, int operation, int Spacing, string symb
     return true;
 }
 
-double calcHuristics(int ticketNumber, string symbol, int ordertype, int magicNumber, bool atrHeuristic, bool netPositionsHeuristic, bool opositeLoosingTrades) {
+double calcHuristics(int ticketNumber
+                              , string symbol
+                              , int ordertype
+                              , int magicNumber
+                              , bool atrHeuristic
+                              , bool unsafeNetPositionsHeuristic
+                              , bool netPositionsHeuristic
+                              , bool hammerHeuriticEnabled
+                              , bool dodgyHeuristicEnabled
+                              , bool opositeLoosingTrades) {
     double atrHeuVal = 1.0;
+    double unsafeNetPosHeuVal = 1.0;
     double netPosHeuVal = 1.0;
     double timeHeuVal = 1.0;
+    double hammerHeuVal = 1.0;
+    double dodgyHeuVal = 1.0;
 
     GroupIds grpId = calculateGroupId(ticketNumber, magicNumber, opositeLoosingTrades, symbol);
 
     int lifetime = TrailingInfo[grpId][LifePeriod];
 
     if (atrHeuristic) atrHeuVal = getARVHuristic(symbol, lifetime);
-    if (netPositionsHeuristic) netPosHeuVal = unsafeBalanceHeuristic(ticketNumber,symbol, ordertype, opositeLoosingTrades);
+    if (unsafeNetPositionsHeuristic) unsafeNetPosHeuVal = unsafeBalanceHeuristic(ticketNumber,symbol, ordertype, opositeLoosingTrades);
+    if (netPositionsHeuristic) netPosHeuVal = balanceHeuristic(ticketNumber,symbol, ordertype, opositeLoosingTrades);
+    if (hammerHeuriticEnabled) hammerHeuVal = hammerHeuristic(ticketNumber,symbol, ordertype, opositeLoosingTrades);
+    if (dodgyHeuristicEnabled) dodgyHeuVal = dodgyHeuristic(ticketNumber,symbol, ordertype, opositeLoosingTrades);
     timeHeuVal = lifeTimeHeuristic(OrderOpenTime(), grpId);
-    if(beVerbose) Print(ticketNumber, ", timeHeu:", timeHeuVal, " ARVHeu:", atrHeuVal, " netPosHeuVal:", netPosHeuVal);
-    return timeHeuVal * atrHeuVal * netPosHeuVal;
+    if(beVerbose) Print(ticketNumber, ", timeHeu:", timeHeuVal, " ARVHeu:", atrHeuVal, " unsafeNetPosHeuVal:", unsafeNetPosHeuVal, " netPoseHeuVal:", netPosHeuVal, " HammerVal:", hammerHeuVal, " DodgyVal:", dodgyHeuVal);
+    return timeHeuVal * atrHeuVal * unsafeNetPosHeuVal * netPosHeuVal;
 }
 
 
@@ -1058,7 +1193,10 @@ void trailPosition(int orderTicket,
     ENUM_TIMEFRAMES panicTimeFrame,
     int panicPIPS,
     bool atrHeuristic,
+    bool unsafeNetPositionsHeuristic,
     bool netPositionsHeuristic,
+    bool hammerCandleHeuristic,
+    bool dodgycandleHeuristic,
     bool opositeLoosingTrades) {
     double pBid, pAsk, pp, pDiff, pRef, pStep, pRetraceTrail, pDirectTrail;
 
@@ -1071,7 +1209,16 @@ void trailPosition(int orderTicket,
 
     bool panic = isPanic(OrderSymbol(), panicTimeFrame, panicPIPS);
 
-    double heuristics = calcHuristics(orderTicket, OrderSymbol(), OrderType(), OrderMagicNumber() ,atrHeuristic, netPositionsHeuristic, opositeLoosingTrades);
+    double heuristics = calcHuristics(orderTicket
+                                                      , OrderSymbol()
+                                                      , OrderType()
+                                                      , OrderMagicNumber()
+                                                      , atrHeuristic
+                                                      , unsafeNetPositionsHeuristic
+                                                      , netPositionsHeuristic
+                                                      , hammerCandleHeuristic
+                                                      , dodgycandleHeuristic
+                                                      , opositeLoosingTrades);
 
     double RetraceValue = getCurrentRetrace(orderTicket, tradeGroupId, continueLifeTimeAfterFirstSL, panic, heuristics);
     int TrailingStop = getCurrentTrailingStop(orderTicket, tradeGroupId, continueLifeTimeAfterFirstSL, panic, heuristics);
