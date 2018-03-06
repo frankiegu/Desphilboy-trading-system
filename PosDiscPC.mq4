@@ -57,7 +57,7 @@ extern int Slippage = 50;
 extern int TradesExpireAfterHours = 0;
 extern double BuyTradesDistanceCoefficient = 1.0;
 extern double SellTradesDistanceCoefficient = 1.0;
-extern int InitialPIPsToStart = 250;
+extern int InitialPIPsToStart = 300;
 
 static bool askUserToDoPositions = false;
 static bool doPositionsOnce = false;
