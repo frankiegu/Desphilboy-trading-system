@@ -33,7 +33,7 @@
 
 //ARV constants
 #define LONGARVAVERAGECANDLES  17
-#define SHORTARVAVERAGECANDLES  5
+#define SHORTARVAVERAGECANDLES  4
 
 enum Groups {
     NoGroup = 0,
@@ -295,15 +295,15 @@ double getARVHuristic(string tradeSymbol, int positionLifeTime) {
         return 1; // returning safe value because of error
     }
 
-    if (avrIndicatorValue < 0.25) { // is very steady
-        return 0.5;
+    if (avrIndicatorValue < 0.3) { // is very steady
+        return 0.7;
     }
 
     if (avrIndicatorValue < 0.5) { // is normal
         return 1;
     }
 
-    return 2; // is very volatile
+    return 1.33; // is very volatile
 }
 
 
@@ -560,12 +560,12 @@ int getPositionsInRange(string symbol, int operation, double center, int PIPsMar
 int getCurrentTrailingStop(int tradeTicket, GroupIds orderGroup, bool lifePeriodEffectiveAlways, bool panic = false, double heuristicsValue = 1) {
 
     if (panic) {
-        if (beVerbose) Print("returning a panic trailing stop for ", tradeTicket);
+        if (beVerbose) Print(tradeTicket, ": Returning a panic trailing stop. ");
         return TrailingInfo[gid_Panic][TrailingStop];
     }
 
     if (!OrderSelect(tradeTicket, SELECT_BY_TICKET, MODE_TRADES)) {
-        Print("getCurrentTrailingStop:could not find the order, returning a fail safe (panic) trailing stop for ", tradeTicket);
+        Print(tradeTicket,": getCurrentTrailingStop:could not find the order, returning a fail safe (panic) trailing stop.");
         return TrailingInfo[gid_Panic][TrailingStop];
     }
 
@@ -579,7 +579,7 @@ int getCurrentTrailingStop(int tradeTicket, GroupIds orderGroup, bool lifePeriod
     }
 
     int orderTrailingStop = (int)(TrailingInfo[orderGroup][TrailingStop] * heuristicsValue);
-    if (beVerbose) Print("Factor is:", heuristicsValue, " ,Order Trailing Stop for ", tradeTicket, " is ", orderTrailingStop);
+    if (beVerbose) Print(tradeTicket, ": Factor is:", heuristicsValue, " ,Order Trailing Stop  is: ", orderTrailingStop);
     return orderTrailingStop;
 }
 
@@ -606,7 +606,7 @@ double getCurrentRetrace(int tradeTicket, GroupIds orderGroup, bool lifePeriodEf
     }
 
     double orderRetrace = (Fibo[TrailingInfo[orderGroup][Retrace]] * heuristicsValue);
-    if (beVerbose) Print("Factor is:", heuristicsValue, " , Order retrace for ", tradeTicket, " is ", orderRetrace);
+    if (beVerbose) Print(tradeTicket,": Factor is:", heuristicsValue, " , Retrace is: ", orderRetrace);
     return orderRetrace;
 }
 
@@ -615,9 +615,7 @@ double lifeTimeHeuristic(datetime orderOpenTime, GroupIds orderGroupId) {
     double minutesElapsed = getMinutesOld(orderOpenTime);
     double lifeTimeInMinutes = TrailingInfo[orderGroupId][LifePeriod];
     
-    // Print("lifeTimeHeuristic: orderOpenTime=",orderOpenTime, " minutesElapsed=", minutesElapsed, " lifeTime:", lifeTimeInMinutes, " groupId:", orderGroupId); 
-
-    if (lifeTimeInMinutes == 0) {
+   if (lifeTimeInMinutes == 0) {
         lifeTimeInMinutes = 30;
     } // prevent divide by zero
     double timesLifeTimeElapsed = (minutesElapsed / lifeTimeInMinutes);
@@ -627,7 +625,7 @@ double lifeTimeHeuristic(datetime orderOpenTime, GroupIds orderGroupId) {
         timesLifeTimeElapsed = 0;
     } // avoid -1 and divide by zero
 
-    return 1 / (1 + 0.5 * timesLifeTimeElapsed * timesLifeTimeElapsed);
+    return 1 / (1 + 0.65 * timesLifeTimeElapsed * timesLifeTimeElapsed);
 }
 
 double unsafeBalanceHeuristic(int ticketNumber, string symbol, int orderType, bool tradeReservationEnabled) {
@@ -637,7 +635,7 @@ double unsafeBalanceHeuristic(int ticketNumber, string symbol, int orderType, bo
     }
 
     if ((orderType == OP_BUY && pairInfoCache[pairIndex].unsafeNetPosition < 0) || (orderType == OP_SELL && pairInfoCache[pairIndex].unsafeNetPosition > 0)) {
-        return 1.5;
+        return 1.2;
     }
 
    if(tradeReservationEnabled && isReservedTrade(ticketNumber, symbol)) {
@@ -645,7 +643,7 @@ double unsafeBalanceHeuristic(int ticketNumber, string symbol, int orderType, bo
    }
    
    if ((orderType == OP_BUY && pairInfoCache[pairIndex].netPosition > 0.008) || (orderType == OP_SELL && pairInfoCache[pairIndex].netPosition < -0.008)) {
-        return 0.8;
+        return 0.9;
     }
 
     return 1;
@@ -658,7 +656,7 @@ double balanceHeuristic(int ticketNumber, string symbol, int orderType, bool tra
     }
 
     if ((orderType == OP_BUY && pairInfoCache[pairIndex].netPosition < 0) || (orderType == OP_SELL && pairInfoCache[pairIndex].netPosition > 0)) {
-        return 1.33;
+        return 1.5;
     }
 
    if(tradeReservationEnabled && isReservedTrade(ticketNumber, symbol)) {
@@ -666,7 +664,7 @@ double balanceHeuristic(int ticketNumber, string symbol, int orderType, bool tra
    }
    
    if ((orderType == OP_BUY && pairInfoCache[pairIndex].netPosition > 0.008) || (orderType == OP_SELL && pairInfoCache[pairIndex].netPosition < -0.008)) {
-        return 0.9;
+        return 0.75;
     }
 
     return 1;
@@ -1130,13 +1128,13 @@ double calcHuristics(int ticketNumber
                               , string symbol
                               , int ordertype
                               , int magicNumber
-                              , bool atrHeuristic
+                              , bool arvHeuristic
                               , bool unsafeNetPositionsHeuristic
                               , bool netPositionsHeuristic
                               , bool hammerHeuriticEnabled
                               , bool dodgyHeuristicEnabled
                               , bool opositeLoosingTrades) {
-    double atrHeuVal = 1.0;
+    double arvHeuVal = 1.0;
     double unsafeNetPosHeuVal = 1.0;
     double netPosHeuVal = 1.0;
     double timeHeuVal = 1.0;
@@ -1147,14 +1145,17 @@ double calcHuristics(int ticketNumber
 
     int lifetime = TrailingInfo[grpId][LifePeriod];
 
-    if (atrHeuristic) atrHeuVal = getARVHuristic(symbol, lifetime);
+    if (arvHeuristic) arvHeuVal = getARVHuristic(symbol, lifetime);
     if (unsafeNetPositionsHeuristic) unsafeNetPosHeuVal = unsafeBalanceHeuristic(ticketNumber,symbol, ordertype, opositeLoosingTrades);
     if (netPositionsHeuristic) netPosHeuVal = balanceHeuristic(ticketNumber,symbol, ordertype, opositeLoosingTrades);
     if (hammerHeuriticEnabled) hammerHeuVal = hammerHeuristic(ticketNumber,symbol, ordertype, opositeLoosingTrades);
     if (dodgyHeuristicEnabled) dodgyHeuVal = dodgyHeuristic(ticketNumber,symbol, ordertype, opositeLoosingTrades);
     timeHeuVal = lifeTimeHeuristic(OrderOpenTime(), grpId);
-    if(beVerbose) Print(ticketNumber, ", timeHeu:", timeHeuVal, " ARVHeu:", atrHeuVal, " unsafeNetPosHeuVal:", unsafeNetPosHeuVal, " netPoseHeuVal:", netPosHeuVal, " HammerVal:", hammerHeuVal, " DodgyVal:", dodgyHeuVal);
-    return timeHeuVal * atrHeuVal * unsafeNetPosHeuVal * netPosHeuVal;
+    if(beVerbose) {
+    Print(ticketNumber, ": timeHeu:", timeHeuVal, " unsafeNetPosHeuVal:", unsafeNetPosHeuVal, " netPoseHeuVal:", netPosHeuVal);
+    Print(ticketNumber, ": ARVHeu:", arvHeuVal, " HammerVal:", hammerHeuVal, " DodgyVal:", dodgyHeuVal);
+    }
+    return timeHeuVal * arvHeuVal * unsafeNetPosHeuVal * netPosHeuVal;
 }
 
 
@@ -1192,7 +1193,7 @@ void trailPosition(int orderTicket,
     bool continueLifeTimeAfterFirstSL,
     ENUM_TIMEFRAMES panicTimeFrame,
     int panicPIPS,
-    bool atrHeuristic,
+    bool arvHeuristic,
     bool unsafeNetPositionsHeuristic,
     bool netPositionsHeuristic,
     bool hammerCandleHeuristic,
@@ -1213,7 +1214,7 @@ void trailPosition(int orderTicket,
                                                       , OrderSymbol()
                                                       , OrderType()
                                                       , OrderMagicNumber()
-                                                      , atrHeuristic
+                                                      , arvHeuristic
                                                       , unsafeNetPositionsHeuristic
                                                       , netPositionsHeuristic
                                                       , hammerCandleHeuristic
