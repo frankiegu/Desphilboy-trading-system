@@ -1,7 +1,7 @@
 // simple trailing stop
 #property copyright "Iman Dezfuly"
 #property link      "http://www.Iman.ir"
-#define version      "20180305"
+#define version      "20180306"
 #include "./desphilboy.mqh"
 
 extern bool ManageAllPairs = true;
@@ -41,8 +41,9 @@ extern bool iARVHeuristic = true;
 extern bool UnsafeNetPositionsHeuristic = true;
 extern bool NetPositionsHeuristic = true;
 extern bool ReserveOpositeForLoosingPositions=true;
-extern bool HammerCandleHeuristic = true;
+extern bool HammerCandleHeuristic = false;
 extern bool DodgyCandleHeuroistics = true;
+extern bool PriceOverTimeHeuristic = true;
 
 extern string AccountPairNames = "USDJPY,GBPJPY,EURJPY,USDCAD,AUDUSD,XAUUSD";
 extern bool DeletePositionsOfOtherPairs = true;
@@ -208,6 +209,7 @@ void start() {
                 , NetPositionsHeuristic
                 , HammerCandleHeuristic
                 , DodgyCandleHeuroistics
+                , PriceOverTimeHeuristic
                 , ReserveOpositeForLoosingPositions);
             }
         }
