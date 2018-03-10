@@ -1,4 +1,4 @@
-//version  20180302
+//version  20180306
 // heaer file for desphilboy
 //+------------------------------------------------------------------+
 //|                                                   desphilboy.mqh |
@@ -557,24 +557,24 @@ int getPositionsInRange(string symbol, int operation, double center, int PIPsMar
     return getPositionsInterval(symbol, operation, l, h, results);
 }
 
-int getCurrentTrailingStop(int tradeTicket, GroupIds orderGroup, bool lifePeriodEffectiveAlways, bool panic = false, double heuristicsValue = 1) {
+int getCurrentTrailingStop(int tradeTicket, GroupIds orderGroup, bool lifePeriodEffectiveAlways, bool panic = false, double heuristicsValue = 1, string symbol="", double tradeStopLoss=0) {
 
-    if (panic) {
-        if (beVerbose) Print(tradeTicket, ": Returning a panic trailing stop. ");
+     if (panic && !isReservedTrade(tradeTicket, symbol)) {
+        if (beVerbose) Print(tradeTicket, ": Returning a panic trailing stop: ", TrailingInfo[gid_Panic][TrailingStop] );
         return TrailingInfo[gid_Panic][TrailingStop];
     }
 
-    if (!OrderSelect(tradeTicket, SELECT_BY_TICKET, MODE_TRADES)) {
-        Print(tradeTicket,": getCurrentTrailingStop:could not find the order, returning a fail safe (panic) trailing stop.");
-        return TrailingInfo[gid_Panic][TrailingStop];
+    if (panic && isReservedTrade(tradeTicket, symbol)) {
+        if (beVerbose) Print(tradeTicket, ": Returning half a nprmal trailing stop for panic reserved ticket: ", TrailingInfo[gid_UltraLongTerm][TrailingStop] * 0.5 * heuristicsValue);
+        return (int) (TrailingInfo[gid_UltraLongTerm][TrailingStop] * 0.5 * heuristicsValue);
     }
-
+    
     if (TrailingInfo[orderGroup][LifePeriod] == PERIOD_CURRENT) {
         return TrailingInfo[orderGroup][TrailingStop];
     }
 
-    if (OrderStopLoss() != 0 && !lifePeriodEffectiveAlways) {
-        if (beVerbose) Print("active calculation not effective after first stop loss, returning constant trailing stop for ", tradeTicket);
+    if (tradeStopLoss != 0 && !lifePeriodEffectiveAlways) {
+        if (beVerbose) Print(tradeTicket, ": Active calculation not effective after first stop loss, returning constant trailing stop");
         return TrailingInfo[orderGroup][TrailingStop];
     }
 
@@ -583,24 +583,24 @@ int getCurrentTrailingStop(int tradeTicket, GroupIds orderGroup, bool lifePeriod
     return orderTrailingStop;
 }
 
-double getCurrentRetrace(int tradeTicket, GroupIds orderGroup, bool lifePeriodEffectiveAlways, bool panic = false, double heuristicsValue = 1) {
+double getCurrentRetrace(int tradeTicket, GroupIds orderGroup, bool lifePeriodEffectiveAlways, bool panic = false, double heuristicsValue = 1, string symbol="", double tradeStopLoss=0) {
 
-    if (panic) {
+    if (panic && !isReservedTrade(tradeTicket, symbol)) {
+        if (beVerbose) Print(tradeTicket, ": Returning a panic trailing stop. ");
         return Fibo[TrailingInfo[gid_Panic][Retrace]];
     }
 
-    if (!OrderSelect(tradeTicket, SELECT_BY_TICKET, MODE_TRADES)) {
-        Print("getCurrentRetrace: could not select order ", tradeTicket, " returning panic as a fail safe option");
-        return Fibo[TrailingInfo[gid_Panic][Retrace]];
+    if (panic && isReservedTrade(tradeTicket,symbol)) {
+          if (beVerbose) Print(tradeTicket, ": Returning half a nprmal retrace for panic reserved ticket.");
+        return Fibo[TrailingInfo[gid_UltraLongTerm][Retrace]] * 0.5 * heuristicsValue;
     }
-
 
     if (TrailingInfo[orderGroup][LifePeriod] == PERIOD_CURRENT) {
 
         return Fibo[TrailingInfo[orderGroup][Retrace]];
     }
 
-    if (OrderStopLoss() != 0 && !lifePeriodEffectiveAlways) {
+    if (tradeStopLoss != 0 && !lifePeriodEffectiveAlways) {
 
         return Fibo[TrailingInfo[orderGroup][Retrace]];
     }
@@ -619,14 +619,40 @@ double lifeTimeHeuristic(datetime orderOpenTime, GroupIds orderGroupId) {
         lifeTimeInMinutes = 30;
     } // prevent divide by zero
     double timesLifeTimeElapsed = (minutesElapsed / lifeTimeInMinutes);
-
-
-    if (timesLifeTimeElapsed < 0) {
-        timesLifeTimeElapsed = 0;
-    } // avoid -1 and divide by zero
-
     return 1 / (1 + 0.5 * timesLifeTimeElapsed * timesLifeTimeElapsed);
 }
+
+int getPipsProfit(double orderOpenPrice, string symbol) {
+ 
+ double price  = (MarketInfo(symbol, MODE_BID) + MarketInfo(symbol, MODE_ASK)) /2;
+ double pointValue = MarketInfo(symbol, MODE_POINT);
+ double diff = MathAbs(orderOpenPrice - price);
+ return (int) (diff/pointValue);
+ 
+ }
+
+
+double priceTimeHeuristic(datetime orderOpenTime, GroupIds orderGroupId, double orderOpenPrice, string symbol) {
+    double minutesElapsed = getMinutesOld(orderOpenTime);
+    double lifeTimeInMinutes = TrailingInfo[orderGroupId][LifePeriod];
+    
+     if (lifeTimeInMinutes == 0)  return 1;   // no need to proceed
+    
+    double timesLifeTimeElapsed = minutesElapsed / lifeTimeInMinutes;
+    
+    if( timesLifeTimeElapsed < 3 ) return 1;  // the Heuristic is to prolong longer lasting trades, not intended to act on new trades
+    
+    int pipsProfit = getPipsProfit(orderOpenPrice, symbol);
+    double timesTrailingStop = pipsProfit / TrailingInfo[orderGroupId][TrailingStop];
+    double priceTimeRatio= (timesTrailingStop / timesLifeTimeElapsed);
+    
+    if(priceTimeRatio < 0.2 )  return 0.7; 
+    if(priceTimeRatio > 0.7)  return 1.25;
+   
+   return 1;
+}
+
+
 
 double unsafeBalanceHeuristic(int ticketNumber, string symbol, int orderType, bool tradeReservationEnabled) {
     int pairIndex = getPairInfoIndex(symbol);
@@ -700,10 +726,10 @@ double hammerness(string symbol, ENUM_TIMEFRAMES timeFrame, int shift) {
     double lowertail = MathMin(iOpen(symbol, timeFrame, shift), iClose(symbol,timeFrame,shift)) - iLow(symbol, timeFrame, shift) ;
     double uppertail =  iHigh(symbol, timeFrame, shift) - MathMax(iOpen(symbol, timeFrame, shift), iClose(symbol,timeFrame,shift)) ;
      
-    double bullishness = (lowertail - uppertail) / candleMovement;
-    // bullishness can be negative as well;
+    double narrowness = (lowertail + uppertail) / candleMovement;
+   
     
-    return bullishness * concentration * relationalVolume * relationalStrength; 
+    return narrowness * concentration * relationalVolume * relationalStrength; 
 
 }
 
@@ -730,20 +756,13 @@ double dodginess(string symbol, ENUM_TIMEFRAMES timeFrame, int shift) {
 
 double hammerHeuristic(int ticketNumber, string symbol, int orderType, bool tradeReservationEnabled) {
    
-   double effectiveHammerness = ( hammerness(symbol, PERIOD_W1, 1) *2 + hammerness(symbol, PERIOD_D1, 1)) / 3;
+   double effectiveHammerness = hammerness(symbol, PERIOD_D1, 1) ;
 
-   if(effectiveHammerness > 6 ) {
-       if (orderType == OP_BUY ) return 1.33;
-         return 0.75;
-      }
-    
-   if(effectiveHammerness > - 6 ) {
-       return 1;
-    }
-    
-   if (orderType == OP_BUY ) return 0.75;
+   if(effectiveHammerness > 10 ) {
+      return 0.85;
+      } 
  
-   return 1.33;
+   return 1;
 }
 
 double dodgyHeuristic(int ticketNumber, string symbol, int orderType, bool tradeReservationEnabled) {
@@ -1128,18 +1147,23 @@ double calcHuristics(int ticketNumber
                               , string symbol
                               , int ordertype
                               , int magicNumber
+                              , datetime openTime
+                              , double openPrice
                               , bool arvHeuristic
                               , bool unsafeNetPositionsHeuristic
                               , bool netPositionsHeuristic
                               , bool hammerHeuriticEnabled
                               , bool dodgyHeuristicEnabled
-                              , bool opositeLoosingTrades) {
+                              , bool priceOverTimeHeuristic                            
+                              , bool opositeLoosingTrades
+                              , bool panic) {
     double arvHeuVal = 1.0;
     double unsafeNetPosHeuVal = 1.0;
     double netPosHeuVal = 1.0;
     double timeHeuVal = 1.0;
     double hammerHeuVal = 1.0;
     double dodgyHeuVal = 1.0;
+    double priceTimeHeuVal = 1.0;
 
     GroupIds grpId = calculateGroupId(ticketNumber, magicNumber, opositeLoosingTrades, symbol);
 
@@ -1150,12 +1174,13 @@ double calcHuristics(int ticketNumber
     if (netPositionsHeuristic) netPosHeuVal = balanceHeuristic(ticketNumber,symbol, ordertype, opositeLoosingTrades);
     if (hammerHeuriticEnabled) hammerHeuVal = hammerHeuristic(ticketNumber,symbol, ordertype, opositeLoosingTrades);
     if (dodgyHeuristicEnabled) dodgyHeuVal = dodgyHeuristic(ticketNumber,symbol, ordertype, opositeLoosingTrades);
-    timeHeuVal = lifeTimeHeuristic(OrderOpenTime(), grpId);
+    if(priceOverTimeHeuristic && !panic) priceTimeHeuVal = priceTimeHeuristic(openTime,grpId,openPrice,symbol);
+    timeHeuVal = lifeTimeHeuristic(openTime, grpId);
     if(beVerbose) {
     Print(ticketNumber, ": timeHeu:", timeHeuVal, " unsafeNetPosHeuVal:", unsafeNetPosHeuVal, " netPoseHeuVal:", netPosHeuVal);
-    Print(ticketNumber, ": ARVHeu:", arvHeuVal, " HammerVal:", hammerHeuVal, " DodgyVal:", dodgyHeuVal);
+    Print(ticketNumber, ": ARVHeu:", arvHeuVal, " HammerVal:", hammerHeuVal, " DodgyVal:", dodgyHeuVal, " PriceOverTimeHeu:", priceTimeHeuVal);
     }
-    return timeHeuVal * arvHeuVal * unsafeNetPosHeuVal * netPosHeuVal;
+    return timeHeuVal * arvHeuVal * unsafeNetPosHeuVal * netPosHeuVal * priceTimeHeuVal * hammerHeuVal * dodgyHeuVal;
 }
 
 
@@ -1198,6 +1223,7 @@ void trailPosition(int orderTicket,
     bool netPositionsHeuristic,
     bool hammerCandleHeuristic,
     bool dodgycandleHeuristic,
+    bool priceOverTimeHeuristic,
     bool opositeLoosingTrades) {
     double pBid, pAsk, pp, pDiff, pRef, pStep, pRetraceTrail, pDirectTrail;
 
@@ -1214,16 +1240,21 @@ void trailPosition(int orderTicket,
                                                       , OrderSymbol()
                                                       , OrderType()
                                                       , OrderMagicNumber()
+                                                      ,OrderOpenTime()
+                                                      ,OrderOpenPrice()
                                                       , arvHeuristic
                                                       , unsafeNetPositionsHeuristic
                                                       , netPositionsHeuristic
                                                       , hammerCandleHeuristic
                                                       , dodgycandleHeuristic
-                                                      , opositeLoosingTrades);
+                                                      , priceOverTimeHeuristic
+                                                      , opositeLoosingTrades
+                                                      ,panic);
 
-    double RetraceValue = getCurrentRetrace(orderTicket, tradeGroupId, continueLifeTimeAfterFirstSL, panic, heuristics);
-    int TrailingStop = getCurrentTrailingStop(orderTicket, tradeGroupId, continueLifeTimeAfterFirstSL, panic, heuristics);
-
+    double RetraceValue = getCurrentRetrace(orderTicket, tradeGroupId, continueLifeTimeAfterFirstSL, panic, heuristics, OrderSymbol(), OrderStopLoss());
+    int TrailingStop = getCurrentTrailingStop(orderTicket, tradeGroupId, continueLifeTimeAfterFirstSL, panic, heuristics,OrderSymbol(), OrderStopLoss());
+      if(beVerbose) Print("trailPosition:", orderTicket,": retrace:",RetraceValue, " trailing: ",TrailingStop);
+   
     pp = MarketInfo(OrderSymbol(), MODE_POINT);
     pDirectTrail = TrailingStop * pp;
     pStep = TrailingInfo[tradeGroupId][Step] * pp;
