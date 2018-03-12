@@ -1,4 +1,4 @@
-//version  20180306
+//version  20180311
 // heaer file for desphilboy
 //+------------------------------------------------------------------+
 //|                                                   desphilboy.mqh |
@@ -711,76 +711,78 @@ double averageCandleMaxMinLength(string symbol, ENUM_TIMEFRAMES timeFrame, int c
 }
 
 double hammerness(string symbol, ENUM_TIMEFRAMES timeFrame, int shift) {
-   double average100 = averageCandleMaxMinLength(symbol, timeFrame, 100);
-   if(average100 == 0) return 0;  //avoid divide by 0
-   
-   double relationalStrength = (iHigh(symbol,timeFrame,shift) - iLow(symbol,timeFrame,shift))/average100;
-   if(relationalStrength == 0) return 0;  //candle is very weak, or error,avoid divide by 0
-   
-   double averageVol =(double) (iVolume(symbol, timeFrame, shift +1) + iVolume( symbol, timeFrame, shift + 2))/2;
-    if(averageVol == 0) return 0;  //avoid divide by 0
-    
-    double relationalVolume =  iVolume( symbol, timeFrame, shift)/averageVol;
-    
-    double candleMovement = MathAbs(iClose(symbol, timeFrame, shift) - iOpen(symbol, timeFrame, shift));
-    if(candleMovement == 0) candleMovement = 0.0001;   // put a minimum to avoid divide by zero
-    double concentration = MathAbs((relationalStrength * average100)/candleMovement);
-    
-    double lowertail = MathMin(iOpen(symbol, timeFrame, shift), iClose(symbol,timeFrame,shift)) - iLow(symbol, timeFrame, shift) ;
-    double uppertail =  iHigh(symbol, timeFrame, shift) - MathMax(iOpen(symbol, timeFrame, shift), iClose(symbol,timeFrame,shift)) ;
-     
-    double narrowness = (lowertail + uppertail) / candleMovement;
-   
-    
-    return narrowness * concentration * relationalVolume * relationalStrength; 
 
+   double candleMovement = MathAbs(iClose(symbol, timeFrame, shift) - iOpen(symbol, timeFrame, shift));
+   if(candleMovement == 0) candleMovement = 0.0001;   // put a minimum to avoid divide by zero
+   
+   double lowertail = MathMin(iOpen(symbol, timeFrame, shift), iClose(symbol,timeFrame,shift)) - iLow(symbol, timeFrame, shift) ;
+   double uppertail =  iHigh(symbol, timeFrame, shift) - MathMax(iOpen(symbol, timeFrame, shift), iClose(symbol,timeFrame,shift)) ;
+     
+    //  Print("lowerTail:", lowertail, " UpperTail:", uppertail);
+    double bullishness = (lowertail - uppertail) / candleMovement;
+   
+   // Print("narroeness:",bullishness);
+    
+    return bullishness * dodginess(symbol,timeFrame, shift); 
+  
 }
 
 double dodginess(string symbol, ENUM_TIMEFRAMES timeFrame, int shift) {
-   double average100 = averageCandleMaxMinLength(symbol, timeFrame, 100);
+    double average100 = averageCandleMaxMinLength(symbol, timeFrame, 100);
+   // Print("average100=",average100);
    if(average100 == 0) return 0;  //avoid divide by 0
    
    double relationalStrength = (iHigh(symbol,timeFrame,shift) - iLow(symbol,timeFrame,shift))/average100;
+   // Print("relationalStrength:", relationalStrength);
    if(relationalStrength == 0) return 0;  //candle is very weak, or error,avoid divide by 0
    
    double averageVol =(double) (iVolume(symbol, timeFrame, shift +1) + iVolume( symbol, timeFrame, shift + 2))/2;
+   // Print("averageVol:", averageVol);
     if(averageVol == 0) return 0;  //avoid divide by 0
     
     double relationalVolume =  iVolume( symbol, timeFrame, shift)/averageVol;
+    // Print("Relational volume:", relationalVolume);
     
     double candleMovement = MathAbs(iClose(symbol, timeFrame, shift) - iOpen(symbol, timeFrame, shift));
     if(candleMovement == 0) candleMovement = 0.0001;   // put a minimum to avoid divide by zero
-    double concentration = MathAbs((relationalStrength * average100)/candleMovement);     
-   
+    // Print("Candle movement:", candleMovement);
+    double concentration = MathAbs((relationalStrength * average100)/candleMovement);
+    // Print("Concentration:", concentration);
+    
     return concentration * relationalVolume * relationalStrength; 
-
 }
 
 
 double hammerHeuristic(int ticketNumber, string symbol, int orderType, bool tradeReservationEnabled) {
+
+// Print(ticketNumber, "start hammer:");
    
    double effectiveHammerness = hammerness(symbol, PERIOD_D1, 1) ;
-
-   if(effectiveHammerness > 10 ) {
-      return 0.85;
+   // Print("effectiveHammerness:", effectiveHammerness);
+   if(effectiveHammerness > 14 ) {
+      if(orderType == OP_SELL ) return 0.75;
       } 
- 
-   return 1;
+   if(effectiveHammerness > -14 ) {
+     return 1;
+      } 
+      
+  if(orderType == OP_BUY) return 0.75;
+
+   return 1; 
 }
 
 double dodgyHeuristic(int ticketNumber, string symbol, int orderType, bool tradeReservationEnabled) {
-   double effectiveDodginess = dodginess(symbol, PERIOD_D1, 1);
-   
-   bool isABullDodgi = iOpen(symbol,PERIOD_W1,1) - iClose(symbol, PERIOD_W1, 1) > 0;
 
-   if(effectiveDodginess >8 && isABullDodgi ) {
-       if (orderType == OP_BUY ) return 1.33;
-         return 0.75;
-      }
-      
-   if(effectiveDodginess >8 && !isABullDodgi ) {
-       if (orderType == OP_BUY ) return 0.75;
-         return 1.33;
+// Print("Start dodgy:");
+   double effectiveDodginess = dodginess(symbol, PERIOD_D1, 1);
+   // Print(" effective dodginess:", effectiveDodginess);
+   
+   bool isABullDodgi = iOpen(symbol,PERIOD_D1,2) - iClose(symbol, PERIOD_D1, 2) > 0;
+   // Print("is bull dodgi:", isABullDodgi);
+
+   if(effectiveDodginess >5) {
+       if (isABullDodgi && orderType == OP_SELL ) return 0.75;
+       if (!isABullDodgi && orderType == OP_BUY ) return 0.75;
       }
     
    return 1;
