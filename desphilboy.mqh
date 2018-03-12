@@ -592,7 +592,10 @@ double getCurrentRetrace(int tradeTicket, GroupIds orderGroup, bool lifePeriodEf
 
     if (panic && isReservedTrade(tradeTicket,symbol)) {
           if (beVerbose) Print(tradeTicket, ": Returning half a nprmal retrace for panic reserved ticket.");
-        return Fibo[TrailingInfo[gid_UltraLongTerm][Retrace]] * 0.5 * heuristicsValue;
+        double reservingCoefficient =1;
+        int reservedIndex = inReservedTrades(tradeTicket,symbol);
+        if( reservedIndex > -1) reservingCoefficient = 0.9 /(1 + reservedIndex);  
+        return Fibo[TrailingInfo[gid_UltraLongTerm][Retrace]] * 0.5 * heuristicsValue * reservingCoefficient ;
     }
 
     if (TrailingInfo[orderGroup][LifePeriod] == PERIOD_CURRENT) {
@@ -640,7 +643,7 @@ double priceTimeHeuristic(datetime orderOpenTime, GroupIds orderGroupId, double 
     
     double timesLifeTimeElapsed = minutesElapsed / lifeTimeInMinutes;
     
-    if( timesLifeTimeElapsed < 4 ) return 1;  // the Heuristic is to prolong longer lasting trades, not intended to act on new trades
+    if( timesLifeTimeElapsed < 3 ) return 1;  // the Heuristic is to prolong longer lasting trades, not intended to act on new trades
     
     int pipsProfit = getPipsProfit(orderOpenPrice, symbol);
     double timesTrailingStop = pipsProfit / TrailingInfo[orderGroupId][TrailingStop];
@@ -996,8 +999,8 @@ int appendBuyStops(string pairName, int distance, int spacing, double lots, int 
     Groups g = UltraLongTerm;
 
     for (int i = 0; i < 8; i++, g += UltraLongTerm) {
-        createBuyStop(pairName, symbolAsk, i, distance, stoploss, 0, MathMax(g, grp), distance, lots, 100, 0, spacing);
-        createBuyStop(pairName, symbolAsk, i + 8, distance, stoploss, 0, MathMax(g, grp), distance, lots, 100, 0, spacing);
+        createBuyStop(pairName, symbolAsk, i, 2 * distance, stoploss, 0, MathMax(g, grp), distance, lots, 100, 0, spacing);
+        createBuyStop(pairName, symbolAsk, i + 8, 2 * distance, stoploss, 0, MathMax(g, grp), distance, lots, 100, 0, spacing);
     }
 
     return 0;
@@ -1010,8 +1013,8 @@ int appendSellStops(string pairName, int distance, int spacing, double lots, int
     Groups g = UltraLongTerm;
 
     for (int i = 0; i < 8; i++, g += UltraLongTerm) {
-        createSellStop(pairName, symbolBid, i, distance, stoploss, 0, MathMax(g, grp), distance, lots, 100, 0, spacing);
-        createSellStop(pairName, symbolBid, i+ 8, distance, stoploss, 0, MathMax(g, grp), distance, lots, 100, 0, spacing);
+        createSellStop(pairName, symbolBid, i, 2 * distance, stoploss, 0, MathMax(g, grp), distance, lots, 100, 0, spacing);
+        createSellStop(pairName, symbolBid, i+ 8, 2 * distance, stoploss, 0, MathMax(g, grp), distance, lots, 100, 0, spacing);
     }
 
     return 0;
@@ -1194,10 +1197,27 @@ bool isReservedTrade(int tradeTicket, string symbol) {
     return result;
 }
 
+
+int inReservedTrades(int tradeTicket, string symbol) {
+    int index = getPairInfoIndex(symbol);
+    if(index== -1) return false;
+
+   int buyIndex = inArray(tradeTicket, pairInfoCache[index].reservedOpositeBuys, pairInfoCache[index].reservedBuysCount);
+   if(buyIndex != -1) return buyIndex;
+   
+   return inArray(tradeTicket, pairInfoCache[index].reservedOpositeSells, pairInfoCache[index].reservedSellsCount);
+}
+
 bool isInArray(int ticketTofind, int & ticketArray[], int arrayCount) {
     for (int i = 0; i < arrayCount; ++i)
         if (ticketArray[i] == ticketTofind) return true;
     return false;
+}
+
+int inArray(int ticketTofind, int & ticketArray[], int arrayCount) {
+    for (int i = 0; i < arrayCount; ++i)
+        if (ticketArray[i] == ticketTofind) return i;
+    return -1;
 }
 
 GroupIds calculateGroupId(int tradeTicket, int magicNumber, bool opositeReserveEnabled = true, string symbol="") {
