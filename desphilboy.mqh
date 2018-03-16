@@ -635,7 +635,7 @@ int getPipsProfit(double orderOpenPrice, string symbol) {
  }
 
 
-double priceTimeHeuristic(datetime orderOpenTime, GroupIds orderGroupId, double orderOpenPrice, string symbol) {
+double priceTimeHeuristic(int tradeTicket, datetime orderOpenTime, GroupIds orderGroupId, double orderOpenPrice, string symbol) {
     double minutesElapsed = getMinutesOld(orderOpenTime);
     double lifeTimeInMinutes = TrailingInfo[orderGroupId][LifePeriod];
     
@@ -649,7 +649,9 @@ double priceTimeHeuristic(datetime orderOpenTime, GroupIds orderGroupId, double 
     double timesTrailingStop = pipsProfit / TrailingInfo[orderGroupId][TrailingStop];
     double priceTimeRatio= (timesTrailingStop / timesLifeTimeElapsed);
     
-    if(priceTimeRatio < 0.2 )  return 0.7; 
+    if(priceTimeRatio < 0.2 ) {  
+    if( isReservedTrade(tradeTicket, symbol)) return 1.0;
+    return 0.7; }
     if(priceTimeRatio > 0.5)  return 1.25;
    
    return 1;
@@ -721,9 +723,9 @@ double hammerness(string symbol, ENUM_TIMEFRAMES timeFrame, int shift) {
     //  Print("lowerTail:", lowertail, " UpperTail:", uppertail);
     double bullishness = (lowertail - uppertail) / candleMovement;
    
-   // Print("narroeness:",bullishness);
+   double bullishnessFactor = bullishness > 5 ? 1: (bullishness < -5 ? -1 : 0); 
     
-    return bullishness * dodginess(symbol,timeFrame, shift); 
+    return bullishnessFactor * dodginess(symbol,timeFrame, shift); 
   
 }
 
@@ -736,7 +738,7 @@ double dodginess(string symbol, ENUM_TIMEFRAMES timeFrame, int shift) {
    // Print("relationalStrength:", relationalStrength);
    if(relationalStrength == 0) return 0;  //candle is very weak, or error,avoid divide by 0
    
-   double averageVol =(double) (iVolume(symbol, timeFrame, shift +1) + iVolume( symbol, timeFrame, shift + 2))/2;
+   double averageVol =(double) (iVolume(symbol, timeFrame, shift +1) + iVolume( symbol, timeFrame, shift + 2) + iVolume( symbol, timeFrame, shift + 3) + iVolume( symbol, timeFrame, shift + 4))/4;
    // Print("averageVol:", averageVol);
     if(averageVol == 0) return 0;  //avoid divide by 0
     
@@ -744,25 +746,27 @@ double dodginess(string symbol, ENUM_TIMEFRAMES timeFrame, int shift) {
     // Print("Relational volume:", relationalVolume);
     
     double candleMovement = MathAbs(iClose(symbol, timeFrame, shift) - iOpen(symbol, timeFrame, shift));
-    if(candleMovement == 0) candleMovement = 0.0001;   // put a minimum to avoid divide by zero
+    if(candleMovement == 0) candleMovement = 0.001;   // put a minimum to avoid divide by zero
     // Print("Candle movement:", candleMovement);
-    double concentration = MathAbs((relationalStrength * average100)/candleMovement);
+    double concentration = MathMin(5, MathAbs((relationalStrength * average100)/candleMovement));
     // Print("Concentration:", concentration);
     
-    return concentration * relationalVolume * relationalStrength; 
+    return concentration * MathPow(relationalVolume, 2) * MathPow(relationalStrength,2); 
 }
 
 
-double hammerHeuristic(int ticketNumber, string symbol, int orderType, bool tradeReservationEnabled) {
+double hammerHeuristic(int ticketNumber, string symbol, int orderType, bool tradeReservationEnabled, GroupIds tradeGroup) {
 
 // Print(ticketNumber, "start hammer:");
    
-   double effectiveHammerness = hammerness(symbol, PERIOD_D1, 1) ;
+    ENUM_TIMEFRAMES timeFrame = findStandardTimeFrameOf(TrailingInfo[tradeGroup][LifePeriod]);
+   double effectiveHammerness = hammerness(symbol, timeFrame, 1);
    // Print("effectiveHammerness:", effectiveHammerness);
-   if(effectiveHammerness > 14 ) {
+  
+   if(effectiveHammerness > 6 ) {
       if(orderType == OP_SELL ) return 0.75;
       } 
-   if(effectiveHammerness > -14 ) {
+   if(effectiveHammerness > -6 ) {
      return 1;
       } 
       
@@ -771,25 +775,24 @@ double hammerHeuristic(int ticketNumber, string symbol, int orderType, bool trad
    return 1; 
 }
 
-double dodgyHeuristic(int ticketNumber, string symbol, int orderType, bool tradeReservationEnabled) {
+double dodgyHeuristic(int ticketNumber, string symbol, int orderType, bool tradeReservationEnabled, GroupIds tradeGroup) {
 
 // Print("Start dodgy:");
-   double effectiveDodginess = dodginess(symbol, PERIOD_D1, 1);
+   ENUM_TIMEFRAMES timeFrame = findStandardTimeFrameOf(TrailingInfo[tradeGroup][LifePeriod]);
+   double effectiveDodginess = dodginess(symbol, timeFrame, 1) * candleSign(symbol,timeFrame, 2);
    // Print(" effective dodginess:", effectiveDodginess);
-   
-   bool isABullDodgi = iOpen(symbol,PERIOD_D1,2) - iClose(symbol, PERIOD_D1, 2) > 0;
-   // Print("is bull dodgi:", isABullDodgi);
 
-   if(effectiveDodginess >5) {
-       if (isABullDodgi && orderType == OP_SELL ) return 0.75;
-       if (!isABullDodgi && orderType == OP_BUY ) return 0.75;
-      }
-    
-   return 1;
+   if(effectiveDodginess > 6 && orderType == OP_SELL ) return 0.75;
+   
+   if(effectiveDodginess < -6 && orderType == OP_BUY ) return 0.75;
+      
+ return 1;
 }
 
 
-
+int candleSign(string symbol, ENUM_TIMEFRAMES timeFrame, int shift) {
+return  iOpen(symbol, timeFrame, shift) - iClose(symbol, timeFrame, shift) > 0 ? 1 : -1;
+}
 
 int getMinutesOld(datetime creationTime) {
     int diff = (int)(TimeCurrent() - creationTime);
@@ -1177,9 +1180,9 @@ double calcHuristics(int ticketNumber
     if (arvHeuristic) arvHeuVal = getARVHuristic(symbol, lifetime);
     if (unsafeNetPositionsHeuristic) unsafeNetPosHeuVal = unsafeBalanceHeuristic(ticketNumber,symbol, ordertype, opositeLoosingTrades);
     if (netPositionsHeuristic) netPosHeuVal = balanceHeuristic(ticketNumber,symbol, ordertype, opositeLoosingTrades);
-    if (hammerHeuriticEnabled) hammerHeuVal = hammerHeuristic(ticketNumber,symbol, ordertype, opositeLoosingTrades);
-    if (dodgyHeuristicEnabled) dodgyHeuVal = dodgyHeuristic(ticketNumber,symbol, ordertype, opositeLoosingTrades);
-    if(priceOverTimeHeuristic && !panic) priceTimeHeuVal = priceTimeHeuristic(openTime,grpId,openPrice,symbol);
+    if (hammerHeuriticEnabled) hammerHeuVal = hammerHeuristic(ticketNumber,symbol, ordertype, opositeLoosingTrades, grpId);
+    if (dodgyHeuristicEnabled) dodgyHeuVal = dodgyHeuristic(ticketNumber,symbol, ordertype, opositeLoosingTrades, grpId);
+    if(priceOverTimeHeuristic && !panic) priceTimeHeuVal = priceTimeHeuristic(ticketNumber, openTime,grpId,openPrice,symbol);
     timeHeuVal = lifeTimeHeuristic(openTime, grpId);
     if(beVerbose) {
     Print(ticketNumber, ": timeHeu:", timeHeuVal, " unsafeNetPosHeuVal:", unsafeNetPosHeuVal, " netPoseHeuVal:", netPosHeuVal);
