@@ -77,7 +77,13 @@ bool isDoPositionsToggled() {
 void init()
 {
    Print("Desphilboy position creator ",version, " on ", Symbol());
+   
+   
+  // for (int j=0; j<30; ++j) Print(j, "hammerness:", hammerness(Symbol(),PERIOD_D1, j), "   dodgy:", dodginess(Symbol(),PERIOD_D1, j));
+
+   
    EventSetTimer(TIMERDELAYSECONDS);
+   
 
 return;
 }
